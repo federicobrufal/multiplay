@@ -5,10 +5,14 @@ import type {
   Grade1LenguaLevel,
   ConceptLevel,
 } from "./curriculum";
+import type { Grade4MathLevel } from "./level-types";
 import { buildLanguageQuestions } from "./language-questions";
 import { buildLettersQuestions } from "./letters-questions";
 import { buildGrade1MathQuestions } from "./grade-1-math-questions";
+import { buildGrade4MathQuestions } from "./grade-4-math-questions";
 import { buildGrade1LenguaQuestions } from "./grade-1-lengua-questions";
+import { buildGrade4LenguaQuestions } from "./grade-4-lengua-questions";
+import type { Grade4LenguaLevel } from "./level-types";
 import { buildSciencesQuestions } from "./grade-1-sciences-questions";
 
 // ============================================================
@@ -169,14 +173,40 @@ export function buildMathQuestions(level: TablesMathLevel): MathQuestion[] {
   });
 }
 
+const GRADE_4_MATH_THEMES = new Set<string>([
+  "numbers-10k",
+  "addition-subtraction-carry",
+  "multiplication-1digit",
+  "multiplication-2digit",
+  "simple-division",
+  "problem-solving",
+  "tables-graphs",
+]);
+
+const GRADE_4_LENGUA_THEMES = new Set<string>([
+  "narrative-comprehension",
+  "event-sequence",
+  "capitalization-punctuation",
+  "word-classification",
+  "sentence-production",
+  "informative-comprehension",
+  "short-text-production",
+]);
+
 export function buildQuestions(level: Level): Question[] {
   if (level.track === "math") {
     if (level.theme === "tables") return buildMathQuestions(level);
-    return buildGrade1MathQuestions(level);
+    if (GRADE_4_MATH_THEMES.has(level.theme)) {
+      return buildGrade4MathQuestions(level as Grade4MathLevel);
+    }
+    return buildGrade1MathQuestions(level as import("./curriculum").Grade1MathLevel);
   }
   if (level.track === "language") {
     if (level.theme === "letters-and-sounds") return buildLettersQuestions(level);
     if (level.theme === "nouns-verbs") return buildLanguageQuestions(level);
+    if (GRADE_4_LENGUA_THEMES.has(level.theme)) {
+      return buildGrade4LenguaQuestions(level as Grade4LenguaLevel);
+    }
     return buildGrade1LenguaQuestions(level as Grade1LenguaLevel);
   }
   // social-sciences / natural-sciences

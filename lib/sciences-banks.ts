@@ -194,10 +194,202 @@ export const CLIMATE_BANK: Fact[] = [
 ];
 
 // =================================================================
+//          GRADE 4 — CIENCIAS SOCIALES (7 temas)
+// =================================================================
+
+export const CARDINAL_ORIENTATION_BANK: Fact[] = [
+  { prompt: "¿Cuáles son los puntos cardinales?", answer: "Norte, Sur, Este, Oeste", distractors: ["Arriba, Abajo, Adelante, Atrás", "1, 2, 3, 4", "Izquierda, Derecha, Centro, Borde"] },
+  { prompt: "¿Por dónde sale el sol?", answer: "por el Este", distractors: ["por el Oeste", "por el Norte", "por el Sur"] },
+  { prompt: "¿Por dónde se pone el sol?", answer: "por el Oeste", distractors: ["por el Este", "por el Norte", "por el Sur"] },
+  { prompt: "Si mirás al norte, ¿qué tenés a la derecha?", answer: "Este", distractors: ["Oeste", "Sur", "Norte"] },
+  { prompt: "¿Qué punto cardinal está opuesto al Norte?", answer: "Sur", distractors: ["Este", "Oeste", "Centro"] },
+  { prompt: "¿Qué punto cardinal está opuesto al Este?", answer: "Oeste", distractors: ["Norte", "Sur", "Sureste"] },
+  { prompt: "Una rosa de los vientos sirve para...", answer: "ubicar puntos cardinales", distractors: ["medir tiempo", "pesar cosas", "leer un libro"] },
+  { prompt: "Argentina está en el hemisferio...", answer: "Sur", distractors: ["Norte", "Este", "Oeste"] },
+  { prompt: "Para ubicarte en un mapa usás...", answer: "los puntos cardinales", distractors: ["los colores", "las nubes", "el reloj"] },
+  { prompt: "¿Qué herramienta indica el norte?", answer: "la brújula", distractors: ["el reloj", "el termómetro", "la regla"] },
+];
+
+export const COMMUNITY_INSTITUTIONS_BANK: Fact[] = [
+  { prompt: "¿Qué función cumple el hospital?", answer: "atender la salud de las personas", distractors: ["enseñar a leer", "cocinar comida", "vender ropa"] },
+  { prompt: "¿Qué función cumple la escuela?", answer: "enseñar y educar", distractors: ["curar enfermos", "vender pan", "apagar incendios"] },
+  { prompt: "¿Qué hace la policía?", answer: "cuidar la seguridad", distractors: ["enseñar matemática", "cocinar", "construir casas"] },
+  { prompt: "¿Para qué sirve una biblioteca?", answer: "leer y prestar libros", distractors: ["jugar al fútbol", "vender comida", "cortarse el pelo"] },
+  { prompt: "¿Quién apaga incendios?", answer: "los bomberos", distractors: ["los doctores", "los maestros", "los policías"] },
+  { prompt: "¿Dónde se vacuna a la gente?", answer: "en el hospital o centro de salud", distractors: ["en el cine", "en la panadería", "en el banco"] },
+  { prompt: "¿Qué hace la municipalidad?", answer: "administrar el municipio", distractors: ["enseñar inglés", "vender autos", "viajar al espacio"] },
+  { prompt: "¿Qué institución cuida el patrimonio?", answer: "el museo", distractors: ["la panadería", "la heladería", "la pizzería"] },
+  { prompt: "¿Quiénes nos representan en el gobierno?", answer: "los funcionarios elegidos", distractors: ["los doctores", "los bomberos", "los chefs"] },
+  { prompt: "¿Qué institución te enseña a leer?", answer: "la escuela", distractors: ["el hospital", "la municipalidad", "el supermercado"] },
+];
+
+export const SOCIAL_NORMS_BANK: Fact[] = [
+  { prompt: "¿Por qué hacemos fila?", answer: "para respetar el turno de cada uno", distractors: ["para perder tiempo", "para hacer ruido", "porque sí"] },
+  { prompt: "¿Está bien interrumpir cuando alguien habla?", answer: "no", distractors: ["sí"] },
+  { prompt: "Cuando alguien te ayuda, decís...", answer: "gracias", distractors: ["chau", "no", "después"] },
+  { prompt: "Si rompés algo de un compañero, ¿qué hacés?", answer: "le pido disculpas", distractors: ["lo escondo", "no digo nada", "lo culpo a otro"] },
+  { prompt: "¿Por qué hay normas de convivencia?", answer: "para vivir en armonía", distractors: ["para aburrirnos", "para pelear", "porque sí"] },
+  { prompt: "En clase, ¿está bien gritar?", answer: "no", distractors: ["sí"] },
+  { prompt: "¿Está bien burlarse de los compañeros?", answer: "no", distractors: ["sí"] },
+  { prompt: "Cuando alguien está triste, lo correcto es...", answer: "ayudarlo", distractors: ["ignorarlo", "burlarse", "pegarle"] },
+  { prompt: "Para usar algo de un compañero, primero...", answer: "le pido permiso", distractors: ["se lo saco", "lo escondo", "lo rompo"] },
+  { prompt: "El respeto a los demás se demuestra con...", answer: "palabras y acciones", distractors: ["gritos", "golpes", "insultos"] },
+];
+
+export const TRANSPORTATION_TYPES_BANK: Fact[] = [
+  { prompt: "¿Qué tipo de transporte es el avión?", answer: "aéreo", distractors: ["terrestre", "acuático", "subterráneo"] },
+  { prompt: "¿Qué tipo de transporte es el barco?", answer: "acuático", distractors: ["aéreo", "terrestre", "espacial"] },
+  { prompt: "¿Qué tipo de transporte es el auto?", answer: "terrestre", distractors: ["aéreo", "acuático", "espacial"] },
+  { prompt: "¿Qué transporte usa rieles?", answer: "el tren", distractors: ["el avión", "el barco", "la bicicleta"] },
+  { prompt: "¿Qué transporte navega bajo el agua?", answer: "el submarino", distractors: ["el avión", "el auto", "el helicóptero"] },
+  { prompt: "¿Qué transporte usa hélices y vuela bajo?", answer: "el helicóptero", distractors: ["el barco", "el tren", "el submarino"] },
+  { prompt: "¿Cuál es transporte público de varios pasajeros?", answer: "el colectivo", distractors: ["la bicicleta", "el monopatín", "la moto"] },
+  { prompt: "¿Cuál es el transporte más rápido?", answer: "el avión", distractors: ["la bicicleta", "el barco", "caminar"] },
+  { prompt: "Una bicicleta es transporte...", answer: "terrestre", distractors: ["aéreo", "acuático", "espacial"] },
+  { prompt: "¿Qué transporte aéreo no tiene motor?", answer: "el globo aerostático", distractors: ["el avión", "el helicóptero", "el cohete"] },
+];
+
+export const TIME_CHANGES_BANK: Fact[] = [
+  { prompt: "¿Cómo se iluminaban las casas antes de la electricidad?", answer: "con velas y faroles", distractors: ["con celulares", "con lámparas LED", "con TV"] },
+  { prompt: "¿Cómo se comunicaban antes del teléfono?", answer: "con cartas", distractors: ["con email", "con videollamadas", "con mensajes de texto"] },
+  { prompt: "Antes del auto, ¿en qué se transportaban?", answer: "en caballos o carruajes", distractors: ["en aviones", "en bicicletas eléctricas", "en monopatines"] },
+  { prompt: "¿Cómo escuchaban música antes?", answer: "en discos de vinilo", distractors: ["en Spotify", "en celulares", "en YouTube"] },
+  { prompt: "¿Cómo se enviaban mensajes urgentes hace 100 años?", answer: "por telégrafo", distractors: ["por WhatsApp", "por email", "por video"] },
+  { prompt: "¿Cómo se lavaba la ropa antes de la máquina?", answer: "a mano", distractors: ["con secadora", "con lavavajillas", "con microondas"] },
+  { prompt: "¿Cómo se conservaba la comida antes de la heladera?", answer: "con sal o hielo", distractors: ["en el celular", "con WhatsApp", "con luces LED"] },
+  { prompt: "Las casas de antes solían ser de...", answer: "adobe o madera", distractors: ["plástico", "metal", "vidrio entero"] },
+  { prompt: "Las primeras computadoras eran...", answer: "enormes", distractors: ["muy chiquitas", "del tamaño de un celular", "invisibles"] },
+  { prompt: "¿Qué inventó cambiar la forma de viajar?", answer: "el motor", distractors: ["el lápiz", "el reloj", "el papel"] },
+];
+
+export const ARGENTINA_BASICS_BANK: Fact[] = [
+  { prompt: "¿Cuál es la capital de Argentina?", answer: "Buenos Aires", distractors: ["Córdoba", "Rosario", "Mendoza"] },
+  { prompt: "¿Cuáles son los colores de la bandera argentina?", answer: "celeste y blanco", distractors: ["rojo y blanco", "verde y blanco", "azul y amarillo"] },
+  { prompt: "¿Cómo se llama el himno argentino?", answer: "Himno Nacional Argentino", distractors: ["Aurora", "Marcha de San Lorenzo", "La Cumparsita"] },
+  { prompt: "¿Quién declaró la independencia argentina?", answer: "el Congreso de Tucumán", distractors: ["el rey de España", "Napoleón", "los aztecas"] },
+  { prompt: "¿Qué día se celebra la independencia?", answer: "9 de julio", distractors: ["25 de mayo", "1 de enero", "20 de junio"] },
+  { prompt: "¿Quién creó la bandera argentina?", answer: "Manuel Belgrano", distractors: ["José de San Martín", "Domingo Sarmiento", "Mariano Moreno"] },
+  { prompt: "¿Qué se festeja el 25 de mayo?", answer: "la Revolución de Mayo", distractors: ["la independencia", "Navidad", "el día de la bandera"] },
+  { prompt: "¿Cómo se llama la moneda argentina?", answer: "el peso", distractors: ["el dólar", "el euro", "el real"] },
+  { prompt: "¿Cuál es el animal nacional argentino?", answer: "el hornero", distractors: ["el león", "el elefante", "el tigre"] },
+  { prompt: "¿Qué cordillera atraviesa Argentina?", answer: "los Andes", distractors: ["los Pirineos", "los Alpes", "los Himalayas"] },
+  { prompt: "¿Qué océano baña la costa argentina?", answer: "el Atlántico", distractors: ["el Pacífico", "el Índico", "el Ártico"] },
+];
+
+export const ECONOMIC_ACTIVITIES_BANK: Fact[] = [
+  { prompt: "¿Qué hace un agricultor?", answer: "cultiva la tierra", distractors: ["cura enfermos", "cocina", "vende autos"] },
+  { prompt: "¿Qué actividad es la ganadería?", answer: "criar animales", distractors: ["plantar semillas", "construir casas", "vender ropa"] },
+  { prompt: "¿En qué consiste la pesca?", answer: "atrapar peces", distractors: ["cazar pájaros", "ordeñar vacas", "plantar árboles"] },
+  { prompt: "¿Qué hace un comerciante?", answer: "vende productos", distractors: ["fabrica autos", "cura enfermos", "enseña inglés"] },
+  { prompt: "Una fábrica produce...", answer: "objetos en serie", distractors: ["alimentos solo", "música", "películas"] },
+  { prompt: "¿Qué actividad tiene que ver con el turismo?", answer: "atender turistas", distractors: ["arar la tierra", "fabricar autos", "pescar"] },
+  { prompt: "¿Qué se hace en una panadería?", answer: "se hace pan", distractors: ["se cura", "se enseña", "se construyen casas"] },
+  { prompt: "¿Quién hace muebles?", answer: "el carpintero", distractors: ["el panadero", "el doctor", "el bombero"] },
+  { prompt: "Sectores económicos: ¿cuál es primario?", answer: "agricultura y ganadería", distractors: ["fábricas", "comercio", "internet"] },
+  { prompt: "Sectores económicos: ¿cuál es secundario?", answer: "industria y fábricas", distractors: ["agricultura", "turismo", "venta"] },
+];
+
+// =================================================================
+//          GRADE 4 — CIENCIAS NATURALES (7 temas)
+// =================================================================
+
+export const LIVING_NONLIVING_BANK: Fact[] = [
+  { prompt: "¿Cuál es un ser vivo?", answer: "un perro", distractors: ["una piedra", "una silla", "un lápiz"] },
+  { prompt: "¿Cuál NO es un ser vivo?", answer: "una piedra", distractors: ["una planta", "un perro", "una persona"] },
+  { prompt: "¿Qué hacen los seres vivos?", answer: "nacen, crecen y se reproducen", distractors: ["solo crecen", "solo brillan", "no cambian"] },
+  { prompt: "¿La planta es un ser vivo?", answer: "sí", distractors: ["no"] },
+  { prompt: "¿El sol es un ser vivo?", answer: "no", distractors: ["sí"] },
+  { prompt: "¿Cuál NO es característica de un ser vivo?", answer: "permanece igual para siempre", distractors: ["nace", "crece", "se reproduce"] },
+  { prompt: "¿Qué necesitan los seres vivos para vivir?", answer: "agua y alimento", distractors: ["solo viento", "solo arena", "nada"] },
+  { prompt: "Un río es un ser...", answer: "no vivo", distractors: ["vivo", "vivo a veces"] },
+  { prompt: "Un árbol crece, ¿es vivo?", answer: "sí", distractors: ["no"] },
+  { prompt: "¿Las nubes son seres vivos?", answer: "no", distractors: ["sí"] },
+];
+
+export const BODY_ORGANS_BANK: Fact[] = [
+  { prompt: "¿Para qué sirve el corazón?", answer: "bombea la sangre", distractors: ["digiere comida", "produce voz", "respira aire"] },
+  { prompt: "¿Para qué sirven los pulmones?", answer: "respirar", distractors: ["digerir", "bombear sangre", "ver"] },
+  { prompt: "¿Para qué sirve el estómago?", answer: "digerir la comida", distractors: ["respirar", "bombear sangre", "pensar"] },
+  { prompt: "¿Para qué sirve el cerebro?", answer: "pensar y controlar el cuerpo", distractors: ["respirar", "digerir", "bombear sangre"] },
+  { prompt: "¿Cuántos pulmones tenemos?", answer: "2", distractors: ["1", "3", "4"] },
+  { prompt: "¿Dónde está el corazón?", answer: "en el pecho", distractors: ["en la cabeza", "en el pie", "en la mano"] },
+  { prompt: "¿Para qué sirven los riñones?", answer: "filtran la sangre", distractors: ["respiran", "digieren", "piensan"] },
+  { prompt: "¿Cuál es el órgano más grande del cuerpo?", answer: "la piel", distractors: ["el cerebro", "el corazón", "el estómago"] },
+  { prompt: "¿Qué órgano hace la digestión?", answer: "el estómago", distractors: ["el pulmón", "el cerebro", "el corazón"] },
+  { prompt: "¿Cuál es el sistema que mueve la sangre?", answer: "el sistema circulatorio", distractors: ["el sistema respiratorio", "el sistema nervioso", "el sistema digestivo"] },
+];
+
+export const NUTRITION_BANK: Fact[] = [
+  { prompt: "¿Cuántas comidas conviene hacer al día?", answer: "4", distractors: ["1", "2", "10"] },
+  { prompt: "¿Qué da energía: cereales o caramelos?", answer: "cereales", distractors: ["caramelos", "ninguno", "ambos igual"] },
+  { prompt: "¿Las frutas son alimentos saludables?", answer: "sí", distractors: ["no"] },
+  { prompt: "¿Qué nutriente da la carne?", answer: "proteínas", distractors: ["azúcar", "papas", "agua"] },
+  { prompt: "¿Cuál es una bebida saludable?", answer: "el agua", distractors: ["la gaseosa", "el café cargado", "el alcohol"] },
+  { prompt: "¿Qué tienen las verduras?", answer: "vitaminas y fibra", distractors: ["solo grasa", "solo azúcar", "nada"] },
+  { prompt: "¿Comer mucho dulce es saludable?", answer: "no", distractors: ["sí"] },
+  { prompt: "¿Qué grupo de alimentos NO debe faltar?", answer: "frutas y verduras", distractors: ["solo dulces", "solo papas fritas", "solo helados"] },
+  { prompt: "Una dieta variada significa...", answer: "comer de todos los grupos", distractors: ["comer un solo alimento", "no comer nada", "comer solo carne"] },
+  { prompt: "Antes de comer hay que...", answer: "lavarse las manos", distractors: ["correr una hora", "dormir", "saltar"] },
+];
+
+export const MATTER_STATES_BANK: Fact[] = [
+  { prompt: "¿En qué estado está el agua del vaso?", answer: "líquido", distractors: ["sólido", "gaseoso", "plasma"] },
+  { prompt: "¿En qué estado está el hielo?", answer: "sólido", distractors: ["líquido", "gaseoso", "ninguno"] },
+  { prompt: "¿En qué estado está el vapor?", answer: "gaseoso", distractors: ["sólido", "líquido", "plasma"] },
+  { prompt: "¿Cuántos estados básicos tiene la materia?", answer: "3", distractors: ["1", "2", "5"] },
+  { prompt: "¿El aire es un...?", answer: "gas", distractors: ["sólido", "líquido", "plasma"] },
+  { prompt: "¿Una piedra es un...?", answer: "sólido", distractors: ["líquido", "gas", "plasma"] },
+  { prompt: "¿La leche es un...?", answer: "líquido", distractors: ["sólido", "gas", "plasma"] },
+  { prompt: "Los sólidos tienen forma...", answer: "definida", distractors: ["cambiante", "ninguna", "líquida"] },
+  { prompt: "Los líquidos toman la forma...", answer: "del recipiente", distractors: ["de un cubo siempre", "de un círculo", "de nadie"] },
+  { prompt: "Los gases ocupan...", answer: "todo el espacio disponible", distractors: ["solo el fondo", "solo la mitad", "nada"] },
+];
+
+export const MATERIAL_CHANGES_BANK: Fact[] = [
+  { prompt: "Cocinar un huevo es un cambio...", answer: "irreversible", distractors: ["reversible", "ninguno", "muy lento"] },
+  { prompt: "Derretir hielo es un cambio...", answer: "reversible", distractors: ["irreversible", "ninguno"] },
+  { prompt: "Cuando el agua se evapora, ¿se puede volver a juntar?", answer: "sí, condensándola", distractors: ["no, nunca", "depende del clima", "solo en invierno"] },
+  { prompt: "Quemar papel es un cambio...", answer: "irreversible", distractors: ["reversible"] },
+  { prompt: "Romper un vaso es un cambio...", answer: "irreversible", distractors: ["reversible"] },
+  { prompt: "Estirar un elástico es un cambio...", answer: "reversible", distractors: ["irreversible"] },
+  { prompt: "Hervir agua: ¿se puede recuperar el agua?", answer: "sí", distractors: ["no"] },
+  { prompt: "Una vela encendida cambia...", answer: "irreversiblemente", distractors: ["reversiblemente", "no cambia"] },
+  { prompt: "Plegar un papel es un cambio...", answer: "reversible", distractors: ["irreversible"] },
+  { prompt: "Cocinar carne es un cambio...", answer: "irreversible", distractors: ["reversible"] },
+];
+
+export const WATER_IMPORTANCE_BANK: Fact[] = [
+  { prompt: "¿Qué porcentaje del cuerpo humano es agua aproximadamente?", answer: "60%", distractors: ["10%", "30%", "90%"] },
+  { prompt: "¿Cuál NO es un uso del agua?", answer: "construir paredes", distractors: ["beber", "cocinar", "lavar"] },
+  { prompt: "¿De dónde viene el agua de lluvia?", answer: "de las nubes", distractors: ["del fuego", "del piso", "del sol"] },
+  { prompt: "¿Por qué hay que cuidar el agua?", answer: "porque es un recurso vital", distractors: ["porque sí", "porque cuesta dinero", "porque está fría"] },
+  { prompt: "¿Qué pasa si no se cuida el agua?", answer: "puede faltar", distractors: ["llueve más", "nada", "hace más calor"] },
+  { prompt: "¿Cuánta agua tiene la Tierra que es dulce?", answer: "menos del 3%", distractors: ["50%", "90%", "100%"] },
+  { prompt: "Los seres vivos necesitan agua para...", answer: "vivir", distractors: ["dormir", "ver TV", "jugar"] },
+  { prompt: "Una forma de cuidar el agua es...", answer: "cerrar la canilla cuando no se usa", distractors: ["dejarla abierta", "tirar agua a la calle", "lavar mucho"] },
+  { prompt: "¿Cuál es el ciclo del agua?", answer: "evaporación, condensación y precipitación", distractors: ["solo lluvia", "solo evaporación", "no existe"] },
+  { prompt: "¿De dónde sale el agua potable de la canilla?", answer: "es tratada y depurada", distractors: ["aparece sola", "viene del cielo directo", "se hace en casa"] },
+];
+
+export const ENVIRONMENT_CARE_BANK: Fact[] = [
+  { prompt: "¿Qué significa reciclar?", answer: "reutilizar materiales", distractors: ["tirar todo", "comprar más", "perder cosas"] },
+  { prompt: "¿Qué materiales se pueden reciclar?", answer: "papel, plástico, vidrio", distractors: ["solo comida", "solo agua", "ninguno"] },
+  { prompt: "¿Está bien tirar basura en la calle?", answer: "no", distractors: ["sí"] },
+  { prompt: "¿Qué hace un árbol por el ambiente?", answer: "produce oxígeno", distractors: ["produce humo", "no hace nada", "rompe casas"] },
+  { prompt: "¿Cómo cuidamos el aire?", answer: "no contaminando", distractors: ["fumando más", "quemando basura", "tirando humo"] },
+  { prompt: "¿Está bien usar mucho plástico de un solo uso?", answer: "no", distractors: ["sí"] },
+  { prompt: "Los pilas usadas se tiran en...", answer: "puntos especiales de reciclado", distractors: ["la calle", "el inodoro", "el jardín"] },
+  { prompt: "¿Qué pasa si contaminamos el río?", answer: "afecta a animales y plantas", distractors: ["nada", "se vuelve más limpio", "queda igual"] },
+  { prompt: "¿Para qué se separa la basura?", answer: "para reciclar lo aprovechable", distractors: ["para perder tiempo", "porque sí", "para comprar más"] },
+  { prompt: "Una acción para cuidar el ambiente es...", answer: "ahorrar energía y agua", distractors: ["dejar luces prendidas", "tirar basura", "talar árboles"] },
+];
+
+// =================================================================
 //                          REGISTRY
 // =================================================================
 
 export const SCIENCE_BANKS: Record<string, Fact[]> = {
+  // Grade 1
   "family-and-roles": FAMILY_AND_ROLES_BANK,
   "school": SCHOOL_BANK,
   "coexistence-rules": COEXISTENCE_RULES_BANK,
@@ -213,4 +405,20 @@ export const SCIENCE_BANKS: Record<string, Fact[]> = {
   "animals": ANIMALS_BANK,
   "water": WATER_BANK,
   "climate": CLIMATE_BANK,
+  // Grade 4 — Sociales
+  "cardinal-orientation": CARDINAL_ORIENTATION_BANK,
+  "community-institutions": COMMUNITY_INSTITUTIONS_BANK,
+  "social-norms": SOCIAL_NORMS_BANK,
+  "transportation-types": TRANSPORTATION_TYPES_BANK,
+  "time-changes": TIME_CHANGES_BANK,
+  "argentina-basics": ARGENTINA_BASICS_BANK,
+  "economic-activities": ECONOMIC_ACTIVITIES_BANK,
+  // Grade 4 — Naturales
+  "living-nonliving": LIVING_NONLIVING_BANK,
+  "body-organs": BODY_ORGANS_BANK,
+  "nutrition": NUTRITION_BANK,
+  "matter-states": MATTER_STATES_BANK,
+  "material-changes": MATERIAL_CHANGES_BANK,
+  "water-importance": WATER_IMPORTANCE_BANK,
+  "environment-care": ENVIRONMENT_CARE_BANK,
 };

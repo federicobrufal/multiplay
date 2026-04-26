@@ -20,9 +20,43 @@ export interface ThemeInfo {
  * pair is unique. New themes are added here AND in the curriculum
  * registry (see `lib/curriculum.ts`). */
 export const THEMES: ThemeInfo[] = [
-  // ===== Grade 4 (existing legacy content) =====
+  // ===== Grade 4 — Matemática =====
   { slug: "tables", track: "math", grade: 4, nameKey: "theme.tables" },
+  { slug: "numbers-10k", track: "math", grade: 4, nameKey: "theme.numbers_10k" },
+  { slug: "addition-subtraction-carry", track: "math", grade: 4, nameKey: "theme.addition_subtraction_carry" },
+  { slug: "multiplication-1digit", track: "math", grade: 4, nameKey: "theme.multiplication_1digit" },
+  { slug: "multiplication-2digit", track: "math", grade: 4, nameKey: "theme.multiplication_2digit" },
+  { slug: "simple-division", track: "math", grade: 4, nameKey: "theme.simple_division" },
+  { slug: "problem-solving", track: "math", grade: 4, nameKey: "theme.problem_solving" },
+  { slug: "tables-graphs", track: "math", grade: 4, nameKey: "theme.tables_graphs" },
+
+  // ===== Grade 4 — Lengua =====
   { slug: "nouns-verbs", track: "language", grade: 4, nameKey: "theme.nouns_verbs" },
+  { slug: "narrative-comprehension", track: "language", grade: 4, nameKey: "theme.narrative_comprehension" },
+  { slug: "event-sequence", track: "language", grade: 4, nameKey: "theme.event_sequence" },
+  { slug: "capitalization-punctuation", track: "language", grade: 4, nameKey: "theme.capitalization_punctuation" },
+  { slug: "word-classification", track: "language", grade: 4, nameKey: "theme.word_classification" },
+  { slug: "sentence-production", track: "language", grade: 4, nameKey: "theme.sentence_production" },
+  { slug: "informative-comprehension", track: "language", grade: 4, nameKey: "theme.informative_comprehension" },
+  { slug: "short-text-production", track: "language", grade: 4, nameKey: "theme.short_text_production" },
+
+  // ===== Grade 4 — Ciencias Sociales =====
+  { slug: "cardinal-orientation", track: "social-sciences", grade: 4, nameKey: "theme.cardinal_orientation" },
+  { slug: "community-institutions", track: "social-sciences", grade: 4, nameKey: "theme.community_institutions" },
+  { slug: "social-norms", track: "social-sciences", grade: 4, nameKey: "theme.social_norms" },
+  { slug: "transportation-types", track: "social-sciences", grade: 4, nameKey: "theme.transportation_types" },
+  { slug: "time-changes", track: "social-sciences", grade: 4, nameKey: "theme.time_changes" },
+  { slug: "argentina-basics", track: "social-sciences", grade: 4, nameKey: "theme.argentina_basics" },
+  { slug: "economic-activities", track: "social-sciences", grade: 4, nameKey: "theme.economic_activities" },
+
+  // ===== Grade 4 — Ciencias Naturales =====
+  { slug: "living-nonliving", track: "natural-sciences", grade: 4, nameKey: "theme.living_nonliving" },
+  { slug: "body-organs", track: "natural-sciences", grade: 4, nameKey: "theme.body_organs" },
+  { slug: "nutrition", track: "natural-sciences", grade: 4, nameKey: "theme.nutrition" },
+  { slug: "matter-states", track: "natural-sciences", grade: 4, nameKey: "theme.matter_states" },
+  { slug: "material-changes", track: "natural-sciences", grade: 4, nameKey: "theme.material_changes" },
+  { slug: "water-importance", track: "natural-sciences", grade: 4, nameKey: "theme.water_importance" },
+  { slug: "environment-care", track: "natural-sciences", grade: 4, nameKey: "theme.environment_care" },
 
   // ===== Grade 1 — Lengua (8 temas) =====
   { slug: "letters-and-sounds", track: "language", grade: 1, nameKey: "theme.letters_and_sounds" },

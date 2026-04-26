@@ -61,7 +61,25 @@ export interface Grade1MathLevel extends BaseLevel {
   };
 }
 
-export type MathLevel = TablesMathLevel | Grade1MathLevel;
+/** Generic grade-4 math level (other than the legacy `tables` theme). */
+export interface Grade4MathLevel extends BaseLevel {
+  track: "math";
+  theme:
+    | "numbers-10k"
+    | "addition-subtraction-carry"
+    | "multiplication-1digit"
+    | "multiplication-2digit"
+    | "simple-division"
+    | "problem-solving"
+    | "tables-graphs";
+  variant: string;
+  config?: {
+    range?: [number, number];
+    step?: number;
+  };
+}
+
+export type MathLevel = TablesMathLevel | Grade1MathLevel | Grade4MathLevel;
 
 export type LanguageTopic =
   | "noun-common"
@@ -158,9 +176,29 @@ export interface ConceptLevel extends BaseLevel {
   variant?: string;
 }
 
+/** Grade 4 Lengua themes other than nouns-verbs. Mix of MCQ and
+ * TextProduction-backed levels. */
+export interface Grade4LenguaLevel extends BaseLevel {
+  track: "language";
+  theme:
+    | "narrative-comprehension"
+    | "event-sequence"
+    | "capitalization-punctuation"
+    | "word-classification"
+    | "sentence-production"
+    | "informative-comprehension"
+    | "short-text-production";
+  variant: string;
+  config?: {
+    promptKey?: string;
+    minChars?: number;
+  };
+}
+
 export type LanguageLevel =
   | NounsVerbsLevel
   | LettersLevel
-  | Grade1LenguaLevel;
+  | Grade1LenguaLevel
+  | Grade4LenguaLevel;
 
 export type Level = MathLevel | LanguageLevel | ConceptLevel;
