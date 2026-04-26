@@ -1,7 +1,7 @@
 {
-  "name": "Multiplay · Mate y Lengua",
-  "short_name": "Multiplay",
-  "description": "Aprendé tablas de multiplicar y gramática jugando.",
+  "name": "Mochu",
+  "short_name": "Mochu",
+  "description": "Aprendé jugando: matemática, lengua y ciencias.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

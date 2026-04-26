@@ -53,6 +53,8 @@ export default function HomeClient({
   selectedMascot,
   userId,
   isAdmin,
+  initialTrack = null,
+  initialTheme = null,
 }: {
   username: string;
   grade: Grade;
@@ -61,13 +63,15 @@ export default function HomeClient({
   selectedMascot: MascotVariant;
   userId: string;
   isAdmin: boolean;
+  initialTrack?: Track | null;
+  initialTheme?: ThemeSlug | null;
 }) {
   const { t, locale, toggleLocale } = useI18n();
   const [muted, setMuted] = useState(false);
   const [bestStreak, setBestStreak] = useState(0);
   const [fnfUnlocked, setFnfUnlocked] = useState(isAdmin);
-  const [activeTrack, setActiveTrack] = useState<Track | null>(null);
-  const [activeTheme, setActiveTheme] = useState<ThemeSlug | null>(null);
+  const [activeTrack, setActiveTrack] = useState<Track | null>(initialTrack);
+  const [activeTheme, setActiveTheme] = useState<ThemeSlug | null>(initialTheme);
 
   useEffect(() => {
     audio.init();

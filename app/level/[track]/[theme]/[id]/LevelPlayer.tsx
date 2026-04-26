@@ -78,6 +78,10 @@ export default function LevelPlayer({
   const [picked, setPicked] = useState<OptionValue | null>(null);
   const [streak, setStreak] = useState(0);
   const [, startTransition] = useTransition();
+  const [reward, setReward] = useState<{
+    coinsEarned: number;
+    newlyUnlockedMascotIds: number[];
+  }>({ coinsEarned: 0, newlyUnlockedMascotIds: [] });
 
   useEffect(() => {
     setQuestions(buildQuestions(level));
@@ -134,7 +138,7 @@ export default function LevelPlayer({
           const finalScore = score + (correct ? 1 : 0);
           const passed = finalScore >= level.minScore;
           startTransition(async () => {
-            await recordResult(
+            const res = await recordResult(
               track,
               theme,
               level.id,
@@ -142,6 +146,12 @@ export default function LevelPlayer({
               questions.length,
               level.minScore,
             );
+            if (res.ok) {
+              setReward({
+                coinsEarned: res.coinsEarned,
+                newlyUnlockedMascotIds: res.newlyUnlockedMascotIds,
+              });
+            }
           });
           audio.stopMusic();
           audio.playSfx(passed ? "win" : "lose");
@@ -212,6 +222,8 @@ export default function LevelPlayer({
           score={score}
           total={questions.length}
           wrong={wrong}
+          coinsEarned={reward.coinsEarned}
+          newlyUnlockedMascotIds={reward.newlyUnlockedMascotIds}
           onRetry={retry}
         />
       )}
@@ -311,34 +323,40 @@ function Intro({
 }) {
   const { t } = useI18n();
   const mascot = pickIntroMascot(level, t);
+  // Lookup the per-theme instructions (e.g. "Vas a comparar cantidades..."
+  // for comparing-quantities). Falls back to a generic line if missing.
+  const instructionsKey = `theme.intro.${level.theme.replace(/-/g, "_")}`;
+  const instructionsText = t(instructionsKey);
+  const hasInstructions = instructionsText !== instructionsKey;
+
   return (
     <div className="flex flex-1 flex-col">
-      <TopBar />
-      <div className="mt-4 text-center">
-        <div className="text-6xl">{level.emoji}</div>
-        <h1 className="mt-3 text-3xl font-black text-slate-900">
+      <TopBar backHref={`/?track=${level.track}&theme=${level.theme}`} />
+
+      {/* Hero — emoji + title */}
+      <div className="mt-10 mb-6 text-center">
+        <div className="text-7xl">{level.emoji}</div>
+        <h1 className="mt-4 text-3xl font-black text-slate-900">
           {formatLevelTitle(level, t)}
         </h1>
         <p className="mt-1 text-slate-600">
           {formatLevelSubtitle(level, t)}
         </p>
-        <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
-          {t("level.intro_rule", {
-            min: level.minScore,
-            total: level.questions,
-          })}
-        </p>
       </div>
 
-      <div className="mt-5">
-        <Mascot
-          mood={mascot.mood}
-          message={mascot.messages}
-          size="md"
-          variant={selectedMascot}
-        />
-      </div>
+      {/* Instructions — what the kid will do */}
+      {hasInstructions && (
+        <div className="rounded-2xl bg-blue-50 px-4 py-4 ring-1 ring-blue-200">
+          <p className="text-xs font-bold uppercase tracking-wide text-blue-700">
+            📋 {t("level.what_to_do")}
+          </p>
+          <p className="mt-1 text-base font-semibold text-slate-800">
+            {instructionsText}
+          </p>
+        </div>
+      )}
 
+      {/* Reference card (math/tables + language only) */}
       {level.track === "math" && level.theme === "tables" && level.kind === "learn" && (
         <TableReference
           table={level.tables[0]}
@@ -352,9 +370,27 @@ function Intro({
 
       {level.track === "language" && <LanguageReference level={level} />}
 
+      {/* Mascot encouragement */}
+      <div className="mt-4">
+        <Mascot
+          mood={mascot.mood}
+          message={mascot.messages}
+          size="md"
+          variant={selectedMascot}
+        />
+      </div>
+
+      {/* Pass rule — small, near the button */}
+      <p className="mt-auto pt-6 text-center text-xs font-semibold uppercase tracking-wide text-slate-500">
+        {t("level.intro_rule", {
+          min: level.minScore,
+          total: level.questions,
+        })}
+      </p>
+
       <button
         onClick={onStart}
-        className="mt-auto w-full rounded-2xl bg-brand-500 py-4 text-lg font-black text-white shadow-lg shadow-brand-500/30 active:scale-[0.99]"
+        className="mt-3 w-full rounded-2xl bg-brand-500 py-4 text-lg font-black text-white shadow-lg shadow-brand-500/30 active:scale-[0.99]"
       >
         {t("level.start")}
       </button>
@@ -492,7 +528,7 @@ function Playing({
 
   return (
     <div className="flex flex-1 flex-col">
-      <TopBar />
+      <TopBar backHref={`/?track=${level.track}&theme=${level.theme}`} />
       <div className="mt-4">
         <div className="flex items-center gap-3">
           <div className="h-3 flex-1 overflow-hidden rounded-full bg-slate-100">
@@ -684,6 +720,8 @@ function Result({
   score,
   total,
   wrong,
+  coinsEarned,
+  newlyUnlockedMascotIds,
   onRetry,
 }: {
   level: Level;
@@ -692,6 +730,8 @@ function Result({
   score: number;
   total: number;
   wrong: Question[];
+  coinsEarned: number;
+  newlyUnlockedMascotIds: number[];
   onRetry: () => void;
 }) {
   const { t } = useI18n();
@@ -714,7 +754,12 @@ function Result({
       ? "celebrate"
       : "happy"
     : "sad";
-  const unlockedMascot = passed ? getMascotForLevel(level.id) : undefined;
+  // Only show a "new mascot" if the kid actually unlocked one (i.e.,
+  // this pass completed a theme).
+  const unlockedMascot =
+    passed && newlyUnlockedMascotIds.length > 0
+      ? getMascotForLevel(newlyUnlockedMascotIds[0])
+      : undefined;
   const resultMessage = passed
     ? stars === 3
       ? t("level.result_3_stars")
@@ -722,10 +767,11 @@ function Result({
       ? t("level.result_2_stars")
       : t("level.result_1_star")
     : t("level.result_failed", { n: level.minScore - score });
+  const backToMapHref = `/?track=${track}&theme=${theme}`;
 
   return (
     <div className="flex flex-1 flex-col">
-      <TopBar />
+      <TopBar backHref={`/?track=${level.track}&theme=${level.theme}`} />
       <div className="mt-6 flex flex-1 flex-col items-center justify-center text-center">
         <Character mood={resultMood} size="lg" variant={unlockedMascot} />
         <h1 className="mt-4 text-3xl font-black text-slate-900">
@@ -735,10 +781,22 @@ function Result({
         {passed && unlockedMascot && (
           <div className="mt-4 rounded-2xl bg-amber-50 px-4 py-3 ring-1 ring-amber-200">
             <p className="text-xs font-bold uppercase tracking-wide text-amber-700">
-              {t("level.new_mascot")}
+              {newlyUnlockedMascotIds.length > 1
+                ? t("level.new_mascots_n", { n: newlyUnlockedMascotIds.length })
+                : t("level.new_mascot")}
             </p>
             <p className="mt-0.5 text-lg font-black text-amber-900">
               {t("level.meet_mascot", { name: unlockedMascot.name })}
+            </p>
+          </div>
+        )}
+        {passed && coinsEarned > 0 && (
+          <div className="mt-3 rounded-2xl bg-yellow-50 px-4 py-3 ring-1 ring-yellow-200">
+            <p className="text-xs font-bold uppercase tracking-wide text-yellow-700">
+              {t("level.coins_earned_label")}
+            </p>
+            <p className="mt-0.5 text-lg font-black text-yellow-900">
+              🪙 +{coinsEarned} {t("level.coins_earned_word")}
             </p>
           </div>
         )}
@@ -793,7 +851,7 @@ function Result({
             onClick={() => {
               if (next <= totalForTheme)
                 router.push(`/level/${track}/${theme}/${next}`);
-              else router.push("/");
+              else router.push(backToMapHref);
             }}
             className="w-full rounded-2xl bg-brand-500 py-4 text-lg font-black text-white shadow-lg shadow-brand-500/30 active:scale-[0.99]"
           >
@@ -808,7 +866,7 @@ function Result({
           </button>
         )}
         <Link
-          href="/"
+          href={backToMapHref}
           className="block w-full rounded-2xl bg-white py-3 text-center text-sm font-bold text-slate-700 ring-1 ring-slate-200"
         >
           {t("level.back_to_map")}
@@ -818,12 +876,12 @@ function Result({
   );
 }
 
-function TopBar() {
+function TopBar({ backHref = "/" }: { backHref?: string }) {
   const { t } = useI18n();
   return (
     <div className="flex items-center justify-between">
       <Link
-        href="/"
+        href={backHref}
         className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-500 text-lg font-black text-white shadow-md shadow-brand-500/30 ring-1 ring-brand-600 active:scale-95"
         aria-label={t("topbar.back")}
       >
@@ -906,7 +964,7 @@ function TextProductionStage({
 
   return (
     <div className="flex flex-1 flex-col">
-      <TopBar />
+      <TopBar backHref={`/?track=${level.track}&theme=${level.theme}`} />
       <div className="mt-4">
         <Character variant={selectedMascot} size="sm" mood="happy" />
       </div>

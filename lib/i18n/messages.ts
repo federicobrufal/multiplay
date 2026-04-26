@@ -6,7 +6,7 @@ type Dict = Record<string, string>;
 
 const es: Dict = {
   // meta
-  "meta.app_name": "Multiplay",
+  "meta.app_name": "Mochu",
   "topbar.back": "Volver",
 
   // home
@@ -132,7 +132,50 @@ const es: Dict = {
   "level.weak_hint_sub": "Te recomiendo repasar el Nivel {id} ({title}) antes de reintentar.",
   "level.weak_hint_button": "Ir a repasar la tabla del {table} →",
   "level.new_mascot": "🎁 Nueva mascota",
+  "level.new_mascots_n": "🎁 {n} nuevas mascotas",
   "level.meet_mascot": "¡Conocé a {name}!",
+  "level.coins_earned_label": "Monedas ganadas",
+  "level.coins_earned_word": "monedas",
+  "level.what_to_do": "¿Qué vas a hacer?",
+
+  // ===== Per-theme instructions shown on the intro screen =====
+  // Math
+  "theme.intro.tables": "Vas a practicar las tablas de multiplicar.",
+  "theme.intro.counting_100": "Vas a contar números: cuál sigue, cuál falta o cuántos hay.",
+  "theme.intro.number_recognition": "Vas a relacionar números con sus palabras y con cantidades.",
+  "theme.intro.comparing_quantities": "Vas a comparar cantidades. Tenés que decir cuál es mayor, menor o igual.",
+  "theme.intro.number_series": "Vas a completar series de números. ¿Qué número sigue?",
+  "theme.intro.basic_shapes": "Vas a reconocer figuras geométricas y contar sus lados.",
+  "theme.intro.simple_addition": "Vas a sumar números chiquitos.",
+  "theme.intro.simple_subtraction": "Vas a restar números chiquitos.",
+  "theme.intro.daily_problems": "Vas a resolver problemas con sumas y restas.",
+  // Lengua
+  "theme.intro.letters_and_sounds": "Vas a reconocer letras y los sonidos de las palabras.",
+  "theme.intro.nouns_verbs": "Vas a reconocer sustantivos, adjetivos y verbos.",
+  "theme.intro.word_separation": "Vas a separar palabras que están pegadas.",
+  "theme.intro.simple_words_reading": "Vas a leer palabras y emparejarlas con su imagen.",
+  "theme.intro.writing_words": "Vas a completar palabras con la letra que falta.",
+  "theme.intro.capitalization": "Vas a elegir la oración bien escrita (con mayúsculas).",
+  "theme.intro.simple_sentences": "Vas a ordenar palabras para formar oraciones.",
+  "theme.intro.text_comprehension": "Vas a leer cuentos cortos y responder preguntas.",
+  "theme.intro.text_production": "Vas a escribir un texto. Después un grande lo revisa y aprueba.",
+  // Cs Sociales
+  "theme.intro.family_and_roles": "Vas a aprender sobre la familia y los roles de cada uno.",
+  "theme.intro.school": "Vas a aprender cosas sobre la escuela.",
+  "theme.intro.coexistence_rules": "Vas a aprender reglas para llevarse bien con los demás.",
+  "theme.intro.nearby_spaces": "Vas a reconocer lugares cercanos: casa, barrio, plaza.",
+  "theme.intro.spatial_orientation": "Vas a aprender ubicaciones: arriba, abajo, cerca, lejos.",
+  "theme.intro.transportation": "Vas a aprender sobre los medios de transporte.",
+  "theme.intro.jobs_and_professions": "Vas a aprender sobre los trabajos y profesiones.",
+  // Cs Naturales
+  "theme.intro.human_body": "Vas a aprender sobre las partes del cuerpo humano.",
+  "theme.intro.senses": "Vas a aprender los cinco sentidos.",
+  "theme.intro.healthy_eating": "Vas a aprender sobre la alimentación saludable.",
+  "theme.intro.materials_and_objects": "Vas a aprender de qué están hechos los objetos.",
+  "theme.intro.plants": "Vas a aprender sobre las plantas y sus partes.",
+  "theme.intro.animals": "Vas a aprender sobre los animales.",
+  "theme.intro.water": "Vas a aprender sobre el agua y cómo cuidarla.",
+  "theme.intro.climate": "Vas a aprender sobre el clima y las estaciones.",
 
   // level titles (generated)
   "leveltitle.learn_p1": "Tabla del {table} · parte 1",
@@ -537,7 +580,7 @@ const es: Dict = {
   "fnf.lost_retry": "Reintentar ⚔️",
 
   // login/signup
-  "auth.app_title": "Multiplay",
+  "auth.app_title": "Mochu",
   "auth.login_sub": "Entrá con tu usuario",
   "auth.signup_sub": "Elegí un nombre y una contraseña",
   "auth.signup_title": "Creá tu usuario",
@@ -565,7 +608,7 @@ const es: Dict = {
 
 const en: Dict = {
   // meta
-  "meta.app_name": "Multiplay",
+  "meta.app_name": "Mochu",
   "topbar.back": "Back",
 
   // home
@@ -691,7 +734,46 @@ const en: Dict = {
   "level.weak_hint_sub": "Review Level {id} ({title}) before retrying.",
   "level.weak_hint_button": "Review the {table}s table →",
   "level.new_mascot": "🎁 New mascot",
+  "level.new_mascots_n": "🎁 {n} new mascots",
   "level.meet_mascot": "Meet {name}!",
+  "level.coins_earned_label": "Coins earned",
+  "level.coins_earned_word": "coins",
+  "level.what_to_do": "What will you do?",
+
+  // ===== Per-theme instructions shown on the intro screen =====
+  "theme.intro.tables": "You'll practice the multiplication tables.",
+  "theme.intro.counting_100": "You'll count numbers: what comes next, what's missing, how many.",
+  "theme.intro.number_recognition": "You'll match numbers to their words and to quantities.",
+  "theme.intro.comparing_quantities": "You'll compare quantities: greater than, less than, or equal.",
+  "theme.intro.number_series": "You'll complete number series. What comes next?",
+  "theme.intro.basic_shapes": "You'll spot geometric shapes and count their sides.",
+  "theme.intro.simple_addition": "You'll add small numbers.",
+  "theme.intro.simple_subtraction": "You'll subtract small numbers.",
+  "theme.intro.daily_problems": "You'll solve word problems using addition and subtraction.",
+  "theme.intro.letters_and_sounds": "You'll spot letters and the sounds words begin with.",
+  "theme.intro.nouns_verbs": "You'll spot nouns, adjectives, and verbs.",
+  "theme.intro.word_separation": "You'll split merged words apart.",
+  "theme.intro.simple_words_reading": "You'll read words and match them with their image.",
+  "theme.intro.writing_words": "You'll fill in the missing letter in a word.",
+  "theme.intro.capitalization": "You'll pick the sentence written correctly (with capitals).",
+  "theme.intro.simple_sentences": "You'll order words to form sentences.",
+  "theme.intro.text_comprehension": "You'll read short stories and answer questions.",
+  "theme.intro.text_production": "You'll write a short text. An adult reviews and approves it.",
+  "theme.intro.family_and_roles": "You'll learn about families and roles.",
+  "theme.intro.school": "You'll learn about school.",
+  "theme.intro.coexistence_rules": "You'll learn rules for getting along with others.",
+  "theme.intro.nearby_spaces": "You'll learn about nearby places: home, neighborhood, plaza.",
+  "theme.intro.spatial_orientation": "You'll learn directions: up, down, near, far.",
+  "theme.intro.transportation": "You'll learn about transportation.",
+  "theme.intro.jobs_and_professions": "You'll learn about jobs and professions.",
+  "theme.intro.human_body": "You'll learn about the parts of the human body.",
+  "theme.intro.senses": "You'll learn the five senses.",
+  "theme.intro.healthy_eating": "You'll learn about healthy eating.",
+  "theme.intro.materials_and_objects": "You'll learn what things are made of.",
+  "theme.intro.plants": "You'll learn about plants and their parts.",
+  "theme.intro.animals": "You'll learn about animals.",
+  "theme.intro.water": "You'll learn about water and how to take care of it.",
+  "theme.intro.climate": "You'll learn about weather and seasons.",
 
   // level titles (generated)
   "leveltitle.learn_p1": "{table}s table · part 1",
@@ -1084,7 +1166,7 @@ const en: Dict = {
   "fnf.lost_retry": "Retry ⚔️",
 
   // login/signup
-  "auth.app_title": "Multiplay",
+  "auth.app_title": "Mochu",
   "auth.login_sub": "Log in with your username",
   "auth.signup_sub": "Pick a name and a password",
   "auth.signup_title": "Create your account",

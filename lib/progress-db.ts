@@ -10,6 +10,7 @@ import {
   unlockedMascotCount,
   type Progress,
 } from "./progress-helpers";
+import { coinsForLevel } from "./coins";
 import { isTrack, type Track } from "./tracks";
 import { isValidTheme, type ThemeSlug } from "./themes";
 import { getActiveKidId } from "./active-kid";
@@ -56,7 +57,13 @@ export async function recordResult(
   total: number,
   minScore: number,
 ): Promise<
-  | { ok: true; passed: boolean; stars: number }
+  | {
+      ok: true;
+      passed: boolean;
+      stars: number;
+      coinsEarned: number;
+      newlyUnlockedMascotIds: number[];
+    }
   | { ok: false; error: string }
 > {
   const kidId = await getActiveKidId();
@@ -75,8 +82,13 @@ export async function recordResult(
     .eq("theme", theme)
     .maybeSingle();
 
-  const finalPassed = (existing?.passed ?? false) || passed;
+  const wasPassedBefore = existing?.passed === true;
+  const finalPassed = wasPassedBefore || passed;
   const finalStars = Math.max(existing?.stars ?? 0, stars);
+
+  // Capture pre-update mascot count so we can detect new unlocks.
+  const beforeProgress = await loadProgressForKid(kidId);
+  const beforeUnlocked = unlockedMascotCount(beforeProgress);
 
   const { error } = await supabase.from("progress").upsert(
     {
@@ -94,8 +106,29 @@ export async function recordResult(
   );
   if (error) return { ok: false, error: error.message };
 
+  // Re-read post-update to compute newly unlocked mascots.
+  const afterProgress = await loadProgressForKid(kidId);
+  const afterUnlocked = unlockedMascotCount(afterProgress);
+
+  const newlyUnlockedMascotIds: number[] = [];
+  for (let i = beforeUnlocked + 1; i <= afterUnlocked; i++) {
+    newlyUnlockedMascotIds.push(i);
+  }
+
+  // Coins are awarded only on the FIRST successful pass of a level.
+  const coinsEarned =
+    !wasPassedBefore && finalPassed
+      ? coinsForLevel(track, theme, levelId)
+      : 0;
+
   revalidatePath("/");
-  return { ok: true, passed: finalPassed, stars: finalStars };
+  return {
+    ok: true,
+    passed: finalPassed,
+    stars: finalStars,
+    coinsEarned,
+    newlyUnlockedMascotIds,
+  };
 }
 
 /** Reset progress + redemptions for the active kid. */

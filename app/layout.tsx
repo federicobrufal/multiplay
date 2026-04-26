@@ -3,13 +3,13 @@ import "./globals.css";
 import { I18nProvider } from "@/lib/i18n/context";
 
 export const metadata: Metadata = {
-  title: "Multiplay · Mate y Lengua",
-  description: "Aprendé tablas de multiplicar y gramática jugando",
+  title: "Mochu",
+  description: "Aprendé jugando: matemática, lengua y ciencias",
   manifest: "/manifest.webmanifest",
-  applicationName: "Multiplay",
+  applicationName: "Mochu",
   appleWebApp: {
     capable: true,
-    title: "Multiplay",
+    title: "Mochu",
     statusBarStyle: "default",
   },
   icons: {
