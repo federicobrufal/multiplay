@@ -2,26 +2,33 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import {
   computeStars,
   emptyProgress,
   ensureBucket,
+  unlockedMascotCount,
   type Progress,
 } from "./progress-helpers";
 import { isTrack, type Track } from "./tracks";
 import { isValidTheme, type ThemeSlug } from "./themes";
+import { getActiveKidId } from "./active-kid";
 
+/** Load progress for the active kid. Returns empty progress if there
+ * is no active kid yet (e.g. before picking one). */
 export async function loadProgress(): Promise<Progress> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return emptyProgress();
+  const kidId = await getActiveKidId();
+  if (!kidId) return emptyProgress();
+  return loadProgressForKid(kidId);
+}
 
+/** Same as loadProgress but for an explicit kid id (used by admin). */
+export async function loadProgressForKid(kidId: string): Promise<Progress> {
+  const supabase = await createClient();
   const { data } = await supabase
     .from("progress")
     .select("level_id, track, theme, score, total, passed, stars, updated_at")
-    .eq("user_id", user.id);
+    .eq("kid_id", kidId);
 
   const out = emptyProgress();
   for (const row of data ?? []) {
@@ -52,19 +59,17 @@ export async function recordResult(
   | { ok: true; passed: boolean; stars: number }
   | { ok: false; error: string }
 > {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { ok: false, error: "No autenticado" };
+  const kidId = await getActiveKidId();
+  if (!kidId) return { ok: false, error: "Sin perfil activo" };
 
+  const supabase = await createClient();
   const passed = score >= minScore;
   const stars = computeStars(score, total);
 
   const { data: existing } = await supabase
     .from("progress")
     .select("passed, stars")
-    .eq("user_id", user.id)
+    .eq("kid_id", kidId)
     .eq("level_id", levelId)
     .eq("track", track)
     .eq("theme", theme)
@@ -75,7 +80,7 @@ export async function recordResult(
 
   const { error } = await supabase.from("progress").upsert(
     {
-      user_id: user.id,
+      kid_id: kidId,
       level_id: levelId,
       track,
       theme,
@@ -85,7 +90,7 @@ export async function recordResult(
       stars: finalStars,
       updated_at: new Date().toISOString(),
     },
-    { onConflict: "user_id,level_id,track,theme" },
+    { onConflict: "kid_id,level_id,track,theme" },
   );
   if (error) return { ok: false, error: error.message };
 
@@ -93,30 +98,30 @@ export async function recordResult(
   return { ok: true, passed: finalPassed, stars: finalStars };
 }
 
+/** Reset progress + redemptions for the active kid. */
 export async function resetProgress() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return;
-  await supabase.from("progress").delete().eq("user_id", user.id);
-  await supabase
-    .from("profiles")
+  const kidId = await getActiveKidId();
+  if (!kidId) return;
+
+  const admin = createAdminClient();
+  await admin.from("progress").delete().eq("kid_id", kidId);
+  await admin.from("coin_redemptions").delete().eq("kid_id", kidId);
+  await admin
+    .from("kids")
     .update({ selected_mascot_id: 1 })
-    .eq("id", user.id);
+    .eq("id", kidId);
   revalidatePath("/");
 }
 
+/** Selected mascot for the active kid (1 if none / no active kid). */
 export async function getSelectedMascotId(): Promise<number> {
+  const kidId = await getActiveKidId();
+  if (!kidId) return 1;
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return 1;
   const { data } = await supabase
-    .from("profiles")
+    .from("kids")
     .select("selected_mascot_id")
-    .eq("id", user.id)
+    .eq("id", kidId)
     .maybeSingle();
   return data?.selected_mascot_id ?? 1;
 }
@@ -127,31 +132,20 @@ export async function selectMascot(
   if (!Number.isInteger(mascotId) || mascotId < 1 || mascotId > 100) {
     return { ok: false, error: "Mascota inválida" };
   }
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { ok: false, error: "No autenticado" };
+  const kidId = await getActiveKidId();
+  if (!kidId) return { ok: false, error: "Sin perfil activo" };
 
-  // Mascot 1 (Multi, the default) is always available.
-  // Others require passing the level with the matching id in any
-  // (track, theme) combination.
   if (mascotId !== 1) {
-    const { data: passed } = await supabase
-      .from("progress")
-      .select("track")
-      .eq("user_id", user.id)
-      .eq("level_id", mascotId)
-      .eq("passed", true)
-      .limit(1)
-      .maybeSingle();
-    if (!passed) return { ok: false, error: "Mascota bloqueada" };
+    const progress = await loadProgressForKid(kidId);
+    const unlocked = unlockedMascotCount(progress);
+    if (mascotId > unlocked) return { ok: false, error: "Mascota bloqueada" };
   }
 
-  const { error } = await supabase
-    .from("profiles")
+  const admin = createAdminClient();
+  const { error } = await admin
+    .from("kids")
     .update({ selected_mascot_id: mascotId })
-    .eq("id", user.id);
+    .eq("id", kidId);
   if (error) return { ok: false, error: error.message };
 
   revalidatePath("/");

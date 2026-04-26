@@ -1,5 +1,8 @@
 import { TRACKS, type Track } from "./tracks";
 import { THEMES_BY_TRACK, type ThemeSlug } from "./themes";
+import { levelsFor } from "./curriculum";
+
+const TOTAL_MASCOTS = 41;
 
 export interface LevelResult {
   score: number;
@@ -96,19 +99,49 @@ export function passedCountForTrack(track: Track, p: Progress): number {
   return n;
 }
 
-/** Distinct level ids passed across all (track, theme) — used for the
- * mascot library (mascot N unlocks if level N is passed anywhere). */
-export function unlockedMascotCount(p: Progress): number {
-  const ids = new Set<number>();
+/** A theme is "complete" when all of its levels are passed. */
+export function isThemeComplete(
+  track: Track,
+  theme: ThemeSlug,
+  p: Progress,
+): boolean {
+  const levels = levelsFor(track, theme);
+  if (levels.length === 0) return false;
+  const bucket = p.results[track]?.[theme] ?? {};
+  return levels.every((l) => bucket[l.id]?.passed === true);
+}
+
+/** How many themes the user has fully completed across all tracks. */
+export function completedThemesCount(p: Progress): number {
+  let n = 0;
   for (const t of TRACKS) {
-    const themes = p.results[t] ?? {};
-    for (const theme of Object.keys(themes)) {
-      for (const [id, r] of Object.entries(themes[theme])) {
-        if (r.passed) ids.add(Number(id));
-      }
+    for (const th of THEMES_BY_TRACK[t]) {
+      if (isThemeComplete(t, th.slug, p)) n++;
     }
   }
-  return ids.size;
+  return n;
+}
+
+/** How many themes exist in total (across all tracks). */
+export function totalThemesCount(): number {
+  let n = 0;
+  for (const t of TRACKS) n += THEMES_BY_TRACK[t].length;
+  return n;
+}
+
+/** Mascots awarded per completed theme. Recalculates as new themes
+ * are added to the registry. Always at least 1. */
+export function mascotsPerTheme(): number {
+  const total = totalThemesCount();
+  if (total === 0) return TOTAL_MASCOTS;
+  return Math.ceil(TOTAL_MASCOTS / total);
+}
+
+/** Number of mascots unlocked. Mascots are unlocked in order. The
+ * default mascot (id 1) is always available. */
+export function unlockedMascotCount(p: Progress): number {
+  const earned = completedThemesCount(p) * mascotsPerTheme();
+  return Math.max(1, Math.min(TOTAL_MASCOTS, earned));
 }
 
 export function overallPercent(

@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { loadProgress } from "@/lib/progress-db";
+import { loadWallet } from "@/lib/wallet";
+import { getActiveKidId } from "@/lib/active-kid";
 import { getMascotForLevel, DEFAULT_MASCOT } from "@/lib/mascots";
 import { isAdminUsername } from "@/lib/admin";
 import HomeClient from "./HomeClient";
@@ -14,27 +16,38 @@ export default async function Home() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
+  const kidId = await getActiveKidId();
+  if (!kidId) redirect("/kids");
+
+  const { data: kid } = await supabase
+    .from("kids")
+    .select("name, grade, selected_mascot_id")
+    .eq("id", kidId)
+    .maybeSingle();
+  if (!kid) redirect("/kids");
+
   const { data: profile } = await supabase
     .from("profiles")
-    .select("username, selected_mascot_id")
+    .select("username")
     .eq("id", user.id)
     .maybeSingle();
 
-  const progress = await loadProgress();
-  const username =
-    profile?.username ??
-    (user.user_metadata?.username as string | undefined) ??
-    "jugador";
+  const [progress, wallet] = await Promise.all([
+    loadProgress(),
+    loadWallet(),
+  ]);
 
-  const selectedId = profile?.selected_mascot_id ?? 1;
-  const selectedMascot = getMascotForLevel(selectedId) ?? DEFAULT_MASCOT;
+  const selectedMascot =
+    getMascotForLevel(kid.selected_mascot_id) ?? DEFAULT_MASCOT;
 
   return (
     <HomeClient
-      username={username}
+      username={kid.name}
+      grade={kid.grade ?? 1}
       progress={progress}
+      wallet={wallet}
       selectedMascot={selectedMascot}
-      userId={user.id}
+      userId={kidId}
       isAdmin={isAdminUsername(profile?.username)}
     />
   );

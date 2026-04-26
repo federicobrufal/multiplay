@@ -1,4 +1,9 @@
-export const TRACKS = ["math", "language"] as const;
+export const TRACKS = [
+  "math",
+  "language",
+  "social-sciences",
+  "natural-sciences",
+] as const;
 export type Track = (typeof TRACKS)[number];
 
 export const DEFAULT_TRACK: Track = "math";

@@ -105,16 +105,34 @@ async function main() {
     );
     console.log(`   ✓ Profile listo`);
 
-    // Wipe and reinsert progress for both tracks (math/tables + language/nouns-verbs).
-    await pg.query(`delete from progress where user_id = $1`, [userId]);
+    // Find or create a kid for this parent (named after the username).
+    const { rows: kidRows } = await pg.query<{ id: string }>(
+      `select id from kids where parent_id = $1 order by created_at asc limit 1`,
+      [userId],
+    );
+    let kidId: string;
+    if (kidRows.length > 0) {
+      kidId = kidRows[0].id;
+      console.log(`   ✓ Kid ya existía (${kidId})`);
+    } else {
+      const ins = await pg.query<{ id: string }>(
+        `insert into kids (parent_id, name, grade) values ($1, $2, $3) returning id`,
+        [userId, USERNAME, 3],
+      );
+      kidId = ins.rows[0].id;
+      console.log(`   ✓ Kid creado (${kidId})`);
+    }
+
+    // Wipe and reinsert progress for both tracks for this kid.
+    await pg.query(`delete from progress where kid_id = $1`, [kidId]);
     const rows: Array<
       [string, number, string, string, number, number, boolean, number]
     > = [];
     for (let i = 0; i < TOTAL_MATH_LEVELS; i++) {
-      rows.push([userId, i + 1, "math", "tables", 14, 14, true, 3]);
+      rows.push([kidId, i + 1, "math", "tables", 14, 14, true, 3]);
     }
     for (let i = 0; i < TOTAL_LANGUAGE_LEVELS; i++) {
-      rows.push([userId, i + 1, "language", "nouns-verbs", 14, 14, true, 3]);
+      rows.push([kidId, i + 1, "language", "nouns-verbs", 14, 14, true, 3]);
     }
     const values: string[] = [];
     const params: Array<string | number | boolean> = [];
@@ -126,7 +144,7 @@ async function main() {
       params.push(...r);
     });
     await pg.query(
-      `insert into progress (user_id, level_id, track, theme, score, total, passed, stars, updated_at)
+      `insert into progress (kid_id, level_id, track, theme, score, total, passed, stars, updated_at)
        values ${values.join(", ")}`,
       params,
     );

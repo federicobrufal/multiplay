@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useRef, useState } from "react";
 import { audio } from "@/lib/audio";
 import {
   formatLevelSubtitle,
   formatLevelTitle,
-  levelsByDay,
+  levelsFor,
   totalLevels,
   type Level,
 } from "@/lib/curriculum";
@@ -19,10 +19,17 @@ import {
   unlockedMascotCount,
   type Progress,
 } from "@/lib/progress-helpers";
-import { resetProgress } from "@/lib/progress-db";
-import { TRACKS, type Track } from "@/lib/tracks";
-import { themesFor, type ThemeSlug, type ThemeInfo } from "@/lib/themes";
-import { logoutAction } from "./(auth)/actions";
+import { switchProfileAction } from "@/lib/kids-db";
+import type { Wallet } from "@/lib/wallet";
+import type { Track } from "@/lib/tracks";
+import {
+  getThemeInfo,
+  themesFor,
+  tracksForGrade,
+  type ThemeSlug,
+  type ThemeInfo,
+} from "@/lib/themes";
+import type { Grade } from "@/lib/grades";
 import { type Mood, Character } from "@/components/Mascot";
 import type { MascotVariant } from "@/lib/mascots";
 import { loadBestStreak } from "@/lib/streak";
@@ -34,23 +41,28 @@ type TFn = (key: string, vars?: Record<string, string | number>) => string;
 const TRACK_EMOJI: Record<Track, string> = {
   math: "🧮",
   language: "📚",
+  "social-sciences": "🏘️",
+  "natural-sciences": "🌿",
 };
 
 export default function HomeClient({
   username,
+  grade,
   progress,
+  wallet,
   selectedMascot,
   userId,
   isAdmin,
 }: {
   username: string;
+  grade: Grade;
   progress: Progress;
+  wallet: Wallet;
   selectedMascot: MascotVariant;
   userId: string;
   isAdmin: boolean;
 }) {
   const { t, locale, toggleLocale } = useI18n();
-  const [pending, startTransition] = useTransition();
   const [muted, setMuted] = useState(false);
   const [bestStreak, setBestStreak] = useState(0);
   const [fnfUnlocked, setFnfUnlocked] = useState(isAdmin);
@@ -75,6 +87,8 @@ export default function HomeClient({
     else if (activeTrack !== null) setActiveTrack(null);
   };
 
+  const totalPassedAcrossTracks = unlockedMascotCount(progress);
+
   return (
     <main className="mx-auto max-w-2xl px-4 py-6 pb-24">
       <Header
@@ -84,15 +98,17 @@ export default function HomeClient({
         muted={muted}
         setMuted={setMuted}
         username={username}
-        pending={pending}
-        startTransition={startTransition}
         showBack={showBack}
         onBack={onBack}
+        wallet={wallet}
+        unlockedMascots={totalPassedAcrossTracks}
+        totalMascots={MASCOTS.length}
       />
 
       {activeTrack === null && (
         <SubjectSelector
           t={t}
+          grade={grade}
           username={username}
           progress={progress}
           selectedMascot={selectedMascot}
@@ -107,6 +123,7 @@ export default function HomeClient({
       {activeTrack !== null && activeTheme === null && (
         <ThemeSelector
           track={activeTrack}
+          grade={grade}
           t={t}
           progress={progress}
           onPickTheme={(theme) => setActiveTheme(theme)}
@@ -134,10 +151,11 @@ function Header({
   muted,
   setMuted,
   username,
-  pending,
-  startTransition,
   showBack,
   onBack,
+  wallet,
+  unlockedMascots,
+  totalMascots,
 }: {
   t: TFn;
   locale: "es" | "en";
@@ -145,13 +163,14 @@ function Header({
   muted: boolean;
   setMuted: (m: boolean) => void;
   username: string;
-  pending: boolean;
-  startTransition: ReturnType<typeof useTransition>[1];
   showBack: boolean;
   onBack: () => void;
+  wallet: Wallet;
+  unlockedMascots: number;
+  totalMascots: number;
 }) {
   return (
-    <header className="mb-6 flex items-start justify-between gap-3">
+    <header className="mb-6 flex flex-wrap items-center justify-between gap-3">
       <div className="flex min-w-0 items-center gap-2">
         {showBack && (
           <button
@@ -163,22 +182,93 @@ function Header({
             ←
           </button>
         )}
-        <div className="min-w-0">
-          <h1 className="truncate text-3xl font-black tracking-tight text-slate-900">
-            {t("home.greeting", { name: username })}
-          </h1>
-          <p className="mt-1 text-sm text-slate-600">{t("home.subtitle")}</p>
-        </div>
+        <h1 className="truncate text-4xl font-black tracking-tight text-slate-900 sm:text-5xl">
+          {username}
+        </h1>
       </div>
-      <div className="flex shrink-0 flex-col items-end gap-2">
-        <div className="flex items-center gap-2">
+
+      <div className="flex items-center gap-3">
+        <StatsCard
+          t={t}
+          wallet={wallet}
+          unlockedMascots={unlockedMascots}
+          totalMascots={totalMascots}
+        />
+
+        <SettingsMenu
+          t={t}
+          locale={locale}
+          toggleLocale={toggleLocale}
+          muted={muted}
+          setMuted={setMuted}
+        />
+      </div>
+    </header>
+  );
+}
+
+function SettingsMenu({
+  t,
+  locale,
+  toggleLocale,
+  muted,
+  setMuted,
+}: {
+  t: TFn;
+  locale: "es" | "en";
+  toggleLocale: () => void;
+  muted: boolean;
+  setMuted: (m: boolean) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function onDoc(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setOpen(false);
+    }
+    document.addEventListener("mousedown", onDoc);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDoc);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  return (
+    <div ref={ref} className="relative shrink-0">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-lg shadow-sm ring-1 ring-slate-200 hover:bg-slate-50"
+        aria-label={t("home.settings")}
+        aria-expanded={open}
+      >
+        ⚙️
+      </button>
+      {open && (
+        <div className="absolute right-0 top-12 z-30 w-60 overflow-hidden rounded-2xl bg-white shadow-xl ring-1 ring-slate-200">
           <button
             type="button"
-            onClick={toggleLocale}
-            className="flex h-8 min-w-8 items-center justify-center rounded-full bg-white px-2 text-[10px] font-black uppercase tracking-wide text-slate-700 shadow-sm ring-1 ring-slate-200 hover:bg-slate-50"
-            aria-label={t("home.lang_toggle")}
+            onClick={() => {
+              toggleLocale();
+              setOpen(false);
+            }}
+            className="flex w-full items-center justify-between px-4 py-3 text-sm font-bold text-slate-800 hover:bg-slate-50"
           >
-            {locale === "es" ? "ES" : "EN"}
+            <span className="flex items-center gap-2">
+              <span className="text-base">🌐</span>
+              {t("home.lang_toggle")}
+            </span>
+            <span className="text-xs font-black uppercase text-slate-500">
+              {locale === "es" ? "ES" : "EN"}
+            </span>
           </button>
           <button
             type="button"
@@ -187,40 +277,80 @@ function Header({
               setMuted(m);
               if (!m) audio.playMusic("menu");
             }}
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-base shadow-sm ring-1 ring-slate-200 hover:bg-slate-50"
-            aria-label={muted ? t("home.sound_unmute") : t("home.sound_mute")}
+            className="flex w-full items-center justify-between border-t border-slate-100 px-4 py-3 text-sm font-bold text-slate-800 hover:bg-slate-50"
           >
-            {muted ? "🔇" : "🔊"}
+            <span className="flex items-center gap-2">
+              <span className="text-base">{muted ? "🔇" : "🔊"}</span>
+              {muted ? t("home.sound_unmute") : t("home.sound_mute")}
+            </span>
           </button>
-          <form action={logoutAction}>
+          <form action={switchProfileAction} className="border-t border-slate-100">
             <button
               type="submit"
-              className="rounded-full bg-white px-3 py-1.5 text-xs font-bold text-slate-600 shadow-sm ring-1 ring-slate-200 hover:text-rose-600"
+              className="flex w-full items-center gap-2 px-4 py-3 text-sm font-bold text-slate-800 hover:bg-slate-50"
             >
-              {t("home.logout")}
+              <span className="text-base">👤</span>
+              {t("home.switch_profile")}
             </button>
           </form>
         </div>
-        <button
-          onClick={() => {
-            if (!confirm(t("home.reset_confirm", { name: username })))
-              return;
-            startTransition(async () => {
-              await resetProgress();
-            });
-          }}
-          disabled={pending}
-          className="text-[11px] font-semibold text-slate-400 hover:text-rose-600 disabled:opacity-50"
-        >
-          {pending ? t("home.resetting") : t("home.reset")}
-        </button>
+      )}
+    </div>
+  );
+}
+
+function StatsCard({
+  t,
+  wallet,
+  unlockedMascots,
+  totalMascots,
+}: {
+  t: TFn;
+  wallet: Wallet;
+  unlockedMascots: number;
+  totalMascots: number;
+}) {
+  return (
+    <div className="flex items-center gap-3 rounded-2xl bg-white px-4 py-2 shadow-sm ring-1 ring-slate-200">
+      <div className="flex items-center gap-2">
+        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-yellow-100 text-lg">
+          🪙
+        </span>
+        <div className="leading-tight">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+            {t("home.wallet_short")}
+          </p>
+          <p className="text-lg font-black text-slate-900">
+            {wallet.balance}
+          </p>
+        </div>
       </div>
-    </header>
+      <div className="h-9 w-px bg-slate-200" />
+      <Link
+        href="/library"
+        className="flex items-center gap-2 transition hover:opacity-80"
+      >
+        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-rose-100 text-lg">
+          🎁
+        </span>
+        <div className="leading-tight">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+            {t("home.library_title")}
+          </p>
+          <p className="text-lg font-black text-slate-900">
+            {unlockedMascots}
+            <span className="text-slate-400">/{totalMascots}</span>
+          </p>
+        </div>
+        <span className="ml-1 text-amber-500">→</span>
+      </Link>
+    </div>
   );
 }
 
 function SubjectSelector({
   t,
+  grade,
   username,
   progress,
   selectedMascot,
@@ -228,14 +358,15 @@ function SubjectSelector({
   onPickTrack,
 }: {
   t: TFn;
+  grade: Grade;
   username: string;
   progress: Progress;
   selectedMascot: MascotVariant;
   isAdmin: boolean;
   onPickTrack: (track: Track) => void;
 }) {
-  const totalPassedAcrossTracks = unlockedMascotCount(progress);
-  const passedTotal = TRACKS.reduce(
+  const tracks = tracksForGrade(grade);
+  const passedTotal = tracks.reduce(
     (sum, tr) => sum + passedCountForTrack(tr, progress),
     0,
   );
@@ -251,34 +382,15 @@ function SubjectSelector({
         </p>
       </div>
 
-      {/* Library card */}
-      <Link
-        href="/library"
-        className="mt-6 flex w-full items-center justify-between rounded-2xl bg-amber-50 px-4 py-3 ring-1 ring-amber-200 transition hover:-translate-y-0.5 hover:shadow-md"
-      >
-        <div>
-          <p className="text-xs font-bold uppercase tracking-wide text-amber-700">
-            {t("home.library_title")}
-          </p>
-          <p className="text-sm font-black text-amber-900">
-            {t("home.library_subtitle", {
-              n: totalPassedAcrossTracks,
-              total: MASCOTS.length,
-            })}
-          </p>
-        </div>
-        <span className="text-amber-700">→</span>
-      </Link>
-
       {/* Subject picker */}
       <div className="mt-8 w-full">
         <p className="mb-3 text-center text-sm font-bold uppercase tracking-wide text-slate-500">
           {t("home.pick_subject")}
         </p>
         <div className="grid grid-cols-2 gap-3">
-          {TRACKS.map((track) => {
+          {tracks.map((track) => {
             const passed = passedCountForTrack(track, progress);
-            const total = themesFor(track).reduce(
+            const total = themesFor(grade, track).reduce(
               (sum, th) => sum + totalLevels(track, th.slug),
               0,
             );
@@ -331,16 +443,18 @@ function SubjectSelector({
 
 function ThemeSelector({
   track,
+  grade,
   t,
   progress,
   onPickTheme,
 }: {
   track: Track;
+  grade: Grade;
   t: TFn;
   progress: Progress;
   onPickTheme: (slug: ThemeSlug) => void;
 }) {
-  const themes = themesFor(track);
+  const themes = themesFor(grade, track);
   return (
     <div>
       <div className="mb-4 flex items-center gap-3">
@@ -355,6 +469,11 @@ function ThemeSelector({
         </div>
       </div>
 
+      {themes.length === 0 && (
+        <p className="rounded-2xl bg-slate-50 p-4 text-center text-sm font-semibold text-slate-500 ring-1 ring-slate-200">
+          {t("home.no_themes_for_grade")}
+        </p>
+      )}
       <ul className="space-y-3">
         {themes.map((th: ThemeInfo) => {
           const total = totalLevels(track, th.slug);
@@ -421,7 +540,7 @@ function LevelsView({
   const pct = overallPercent(track, theme, progress, totalThisTheme);
   const examUnlocked =
     progress.results.math?.tables?.[29]?.passed === true;
-  const themeInfo = themesFor(track).find((th) => th.slug === theme);
+  const themeInfo = getThemeInfo(track, theme);
 
   return (
     <div>
@@ -516,19 +635,18 @@ function LevelsView({
         </div>
       )}
 
-      {/* Day sections */}
-      <div className="mt-6">
-        {[1, 2, 3].map((d) => (
-          <DaySection
-            key={`${track}-${theme}-${d}`}
+      {/* Levels (no day grouping — all exercises together) */}
+      <ol className="mt-6 space-y-3">
+        {levelsFor(track, theme).map((l) => (
+          <LevelCard
+            key={`${track}-${theme}-${l.id}`}
             track={track}
             theme={theme}
-            day={d as 1 | 2 | 3}
-            levels={levelsByDay(track, theme, d as 1 | 2 | 3)}
+            level={l}
             progress={progress}
           />
         ))}
-      </div>
+      </ol>
     </div>
   );
 }
@@ -555,49 +673,6 @@ function pickHomeMascot(
   };
 }
 
-function DaySection({
-  track,
-  theme,
-  day,
-  levels,
-  progress,
-}: {
-  track: Track;
-  theme: ThemeSlug;
-  day: 1 | 2 | 3;
-  levels: Level[];
-  progress: Progress;
-}) {
-  const { t } = useI18n();
-  if (levels.length === 0) return null;
-  const label = t(`home.${track}.day${day}`);
-  const dayPassed = levels.filter(
-    (l) => progress.results[track]?.[theme]?.[l.id]?.passed,
-  ).length;
-
-  return (
-    <section className="mb-8">
-      <div className="mb-3 flex items-baseline justify-between">
-        <h2 className="text-lg font-bold text-slate-800">{label}</h2>
-        <span className="text-xs font-semibold text-slate-500">
-          {dayPassed} / {levels.length}
-        </span>
-      </div>
-      <ol className="space-y-3">
-        {levels.map((l) => (
-          <LevelCard
-            key={`${track}-${theme}-${l.id}`}
-            track={track}
-            theme={theme}
-            level={l}
-            progress={progress}
-          />
-        ))}
-      </ol>
-    </section>
-  );
-}
-
 function LevelCard({
   track,
   theme,
@@ -621,7 +696,8 @@ function LevelCard({
     ? "ring-slate-200 bg-white"
     : "ring-slate-200 bg-slate-50 opacity-60";
 
-  const isMixBadge = level.track === "math" && level.kind === "mix";
+  const isMixBadge =
+    level.track === "math" && level.theme === "tables" && level.kind === "mix";
 
   const inner = (
     <div

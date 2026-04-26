@@ -3,6 +3,8 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { clearActiveKidIdCookie } from "@/lib/active-kid";
+import { exitParentMode } from "@/lib/parent-mode";
 
 export type AuthState = { error: string | null };
 
@@ -91,5 +93,7 @@ export async function signupAction(
 export async function logoutAction() {
   const supabase = await createClient();
   await supabase.auth.signOut();
+  await clearActiveKidIdCookie();
+  await exitParentMode();
   redirect("/login");
 }
