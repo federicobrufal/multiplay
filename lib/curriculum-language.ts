@@ -1,7 +1,7 @@
 import {
   MIN_PASS,
   Q_COUNT,
-  type LanguageLevel,
+  type NounsVerbsLevel,
   type LanguageQuestionType,
   type LanguageTopic,
 } from "./level-types";
@@ -165,10 +165,11 @@ const SPECS: Spec[] = [
   },
 ];
 
-export const LANGUAGE_LEVELS: LanguageLevel[] = SPECS.map((s, i) => ({
+export const LANGUAGE_LEVELS: NounsVerbsLevel[] = SPECS.map((s, i) => ({
   id: i + 1,
   track: "language",
   theme: "nouns-verbs",
+  grade: 4,
   day: s.day,
   emoji: s.emoji,
   titleKey: s.titleKey,

@@ -1,7 +1,7 @@
 import {
   MIN_PASS,
   Q_COUNT,
-  type MathLevel,
+  type TablesMathLevel,
 } from "./level-types";
 
 const TABLE_EMOJI: Record<number, string> = {
@@ -23,8 +23,8 @@ function dayForTable(t: number): 1 | 2 | 3 {
   return 3;
 }
 
-function buildLevels(): MathLevel[] {
-  const out: MathLevel[] = [];
+function buildLevels(): TablesMathLevel[] {
+  const out: TablesMathLevel[] = [];
   let id = 0;
 
   for (let t = 1; t <= 10; t++) {
@@ -40,6 +40,7 @@ function buildLevels(): MathLevel[] {
       id: ++id,
       track: "math",
       theme: "tables",
+      grade: 4,
       day,
       emoji,
       titleKey: "leveltitle.learn_p1",
@@ -58,6 +59,7 @@ function buildLevels(): MathLevel[] {
       id: ++id,
       track: "math",
       theme: "tables",
+      grade: 4,
       day,
       emoji,
       titleKey: "leveltitle.learn_p2",
@@ -76,6 +78,7 @@ function buildLevels(): MathLevel[] {
       id: ++id,
       track: "math",
       theme: "tables",
+      grade: 4,
       day,
       emoji: "🔀",
       titleKey: "leveltitle.mix_a",
@@ -94,6 +97,7 @@ function buildLevels(): MathLevel[] {
       id: ++id,
       track: "math",
       theme: "tables",
+      grade: 4,
       day,
       emoji: "🎯",
       titleKey: "leveltitle.mix_b",
@@ -111,6 +115,7 @@ function buildLevels(): MathLevel[] {
     id: ++id,
     track: "math",
     theme: "tables",
+    grade: 4,
     day: 3,
     emoji: "👑",
     titleKey: "leveltitle.final",
@@ -125,4 +130,4 @@ function buildLevels(): MathLevel[] {
   return out;
 }
 
-export const MATH_LEVELS: MathLevel[] = buildLevels();
+export const MATH_LEVELS: TablesMathLevel[] = buildLevels();

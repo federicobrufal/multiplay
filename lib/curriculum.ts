@@ -1,6 +1,43 @@
 import { MATH_LEVELS } from "./curriculum-math";
 import { LANGUAGE_LEVELS } from "./curriculum-language";
-import type { Level, MathLevel } from "./level-types";
+import { LETTERS_LEVELS } from "./curriculum-grade-1-letters";
+import {
+  COUNTING_100_LEVELS,
+  NUMBER_RECOGNITION_LEVELS,
+  COMPARING_QUANTITIES_LEVELS,
+  NUMBER_SERIES_LEVELS,
+  BASIC_SHAPES_LEVELS,
+  SIMPLE_ADDITION_LEVELS,
+  SIMPLE_SUBTRACTION_LEVELS,
+  DAILY_PROBLEMS_LEVELS,
+} from "./curriculum-grade-1-math";
+import {
+  WORD_SEPARATION_LEVELS,
+  SIMPLE_WORDS_READING_LEVELS,
+  WRITING_WORDS_LEVELS,
+  CAPITALIZATION_LEVELS,
+  SIMPLE_SENTENCES_LEVELS,
+  TEXT_COMPREHENSION_LEVELS,
+  TEXT_PRODUCTION_LEVELS,
+} from "./curriculum-grade-1-lengua";
+import {
+  FAMILY_AND_ROLES_LEVELS,
+  SCHOOL_LEVELS,
+  COEXISTENCE_RULES_LEVELS,
+  NEARBY_SPACES_LEVELS,
+  SPATIAL_ORIENTATION_LEVELS,
+  TRANSPORTATION_LEVELS,
+  JOBS_AND_PROFESSIONS_LEVELS,
+  HUMAN_BODY_LEVELS,
+  SENSES_LEVELS,
+  HEALTHY_EATING_LEVELS,
+  MATERIALS_AND_OBJECTS_LEVELS,
+  PLANTS_LEVELS,
+  ANIMALS_LEVELS,
+  WATER_LEVELS,
+  CLIMATE_LEVELS,
+} from "./curriculum-grade-1-sciences";
+import type { Level, MathLevel, TablesMathLevel } from "./level-types";
 import type { Track } from "./tracks";
 import type { ThemeSlug } from "./themes";
 
@@ -10,30 +47,75 @@ export {
   type Level,
   type LevelKind,
   type MathLevel,
+  type TablesMathLevel,
+  type Grade1MathLevel,
+  type Grade1LenguaLevel,
+  type ConceptLevel,
   type LanguageLevel,
   type LanguageTopic,
   type LanguageQuestionType,
 } from "./level-types";
 
-const REGISTRY: Record<Track, Record<ThemeSlug, Level[]>> = {
+/**
+ * Registry of levels by (track, theme). Themes not present here have
+ * no levels yet (placeholder UI shows "Próximamente"). Each theme's
+ * level list is grade-specific via the `grade` field on each Level.
+ */
+const REGISTRY: Partial<Record<Track, Partial<Record<ThemeSlug, Level[]>>>> = {
   math: {
     tables: MATH_LEVELS,
+    "counting-100": COUNTING_100_LEVELS,
+    "number-recognition": NUMBER_RECOGNITION_LEVELS,
+    "comparing-quantities": COMPARING_QUANTITIES_LEVELS,
+    "number-series": NUMBER_SERIES_LEVELS,
+    "basic-shapes": BASIC_SHAPES_LEVELS,
+    "simple-addition": SIMPLE_ADDITION_LEVELS,
+    "simple-subtraction": SIMPLE_SUBTRACTION_LEVELS,
+    "daily-problems": DAILY_PROBLEMS_LEVELS,
   },
   language: {
     "nouns-verbs": LANGUAGE_LEVELS,
+    "letters-and-sounds": LETTERS_LEVELS,
+    "word-separation": WORD_SEPARATION_LEVELS,
+    "simple-words-reading": SIMPLE_WORDS_READING_LEVELS,
+    "writing-words": WRITING_WORDS_LEVELS,
+    "capitalization": CAPITALIZATION_LEVELS,
+    "simple-sentences": SIMPLE_SENTENCES_LEVELS,
+    "text-comprehension": TEXT_COMPREHENSION_LEVELS,
+    "text-production": TEXT_PRODUCTION_LEVELS,
+  },
+  "social-sciences": {
+    "family-and-roles": FAMILY_AND_ROLES_LEVELS,
+    school: SCHOOL_LEVELS,
+    "coexistence-rules": COEXISTENCE_RULES_LEVELS,
+    "nearby-spaces": NEARBY_SPACES_LEVELS,
+    "spatial-orientation": SPATIAL_ORIENTATION_LEVELS,
+    transportation: TRANSPORTATION_LEVELS,
+    "jobs-and-professions": JOBS_AND_PROFESSIONS_LEVELS,
+  },
+  "natural-sciences": {
+    "human-body": HUMAN_BODY_LEVELS,
+    senses: SENSES_LEVELS,
+    "healthy-eating": HEALTHY_EATING_LEVELS,
+    "materials-and-objects": MATERIALS_AND_OBJECTS_LEVELS,
+    plants: PLANTS_LEVELS,
+    animals: ANIMALS_LEVELS,
+    water: WATER_LEVELS,
+    climate: CLIMATE_LEVELS,
   },
 };
 
-export function hasTheme(track: Track, theme: string): boolean {
-  return REGISTRY[track][theme] !== undefined;
+/** True if a (track, theme) has any levels available. */
+export function hasLevels(track: Track, theme: ThemeSlug): boolean {
+  return (REGISTRY[track]?.[theme] ?? []).length > 0;
 }
 
 export function levelsFor(track: Track, theme: ThemeSlug): Level[] {
-  return REGISTRY[track][theme] ?? [];
+  return REGISTRY[track]?.[theme] ?? [];
 }
 
 export function totalLevels(track: Track, theme: ThemeSlug): number {
-  return REGISTRY[track][theme]?.length ?? 0;
+  return levelsFor(track, theme).length;
 }
 
 export function getLevel(
@@ -41,7 +123,7 @@ export function getLevel(
   theme: ThemeSlug,
   id: number,
 ): Level | undefined {
-  return (REGISTRY[track][theme] ?? []).find((l) => l.id === id);
+  return levelsFor(track, theme).find((l) => l.id === id);
 }
 
 export function levelsByDay(
@@ -49,7 +131,7 @@ export function levelsByDay(
   theme: ThemeSlug,
   day: 1 | 2 | 3,
 ): Level[] {
-  return (REGISTRY[track][theme] ?? []).filter((l) => l.day === day);
+  return levelsFor(track, theme).filter((l) => l.day === day);
 }
 
 /** First "learn" level for a given math table (part 1). Math/tables only. */

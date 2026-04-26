@@ -1,4 +1,5 @@
 import type { Track } from "./tracks";
+import type { Grade } from "./grades";
 
 export const Q_COUNT = 14;
 export const MIN_PASS = 12;
@@ -12,6 +13,9 @@ interface BaseLevel {
    * Multiple themes per track let us add new content without rewriting
    * the curriculum index. */
   theme: string;
+  /** Grade this level belongs to (1°-7° primary). The active kid's grade
+   * filters which content they see. */
+  grade: Grade;
   day: 1 | 2 | 3;
   /** i18n key + vars for the level title. */
   titleKey: string;
@@ -28,13 +32,36 @@ interface BaseLevel {
   showIntro: boolean;
 }
 
-export interface MathLevel extends BaseLevel {
+/** Multiplication-tables math level (4° grado). */
+export interface TablesMathLevel extends BaseLevel {
   track: "math";
+  theme: "tables";
   kind: LevelKind;
   tables: number[];
   /** Optional — restrict factors (b in a×b) for "learn" levels (e.g. [1..5]) */
   factors?: number[];
 }
+
+/** Generic grade-1 math level. Each theme reads its own config bag. */
+export interface Grade1MathLevel extends BaseLevel {
+  track: "math";
+  theme:
+    | "counting-100"
+    | "number-recognition"
+    | "comparing-quantities"
+    | "number-series"
+    | "basic-shapes"
+    | "simple-addition"
+    | "simple-subtraction"
+    | "daily-problems";
+  variant: string;
+  config?: {
+    range?: [number, number];
+    step?: number;
+  };
+}
+
+export type MathLevel = TablesMathLevel | Grade1MathLevel;
 
 export type LanguageTopic =
   | "noun-common"
@@ -68,10 +95,72 @@ export type LanguageQuestionType =
   /** Mix of all language types (used by the final challenge). */
   | "all";
 
-export interface LanguageLevel extends BaseLevel {
+/** Existing nouns-and-verbs theme (4° grado). */
+export interface NounsVerbsLevel extends BaseLevel {
   track: "language";
+  theme: "nouns-verbs";
   topic: LanguageTopic;
   questionTypes: LanguageQuestionType[];
 }
 
-export type Level = MathLevel | LanguageLevel;
+/** Variants of question generation for the letters-and-sounds theme. */
+export type LettersVariant =
+  /** Show a word's emoji, ask which letter it starts with. */
+  | "letter-from-word"
+  /** Show a letter, ask which one (visual recognition among similar letters). */
+  | "letter-visual"
+  /** Show a letter, ask which word (with emoji) starts with it. */
+  | "word-from-letter"
+  /** Ask which animal starts with X. */
+  | "animal-from-letter"
+  /** Ask which object/place starts with X. */
+  | "object-from-letter"
+  /** Show "_asa", ask which letter is missing. */
+  | "missing-letter"
+  /** Mix of all variants for review/final levels. */
+  | "mix";
+
+export interface LettersLevel extends BaseLevel {
+  track: "language";
+  theme: "letters-and-sounds";
+  variant: LettersVariant;
+  /** Letters in scope for this level (lowercase). For mix/final, this is the
+   * full set the kid has seen so far. */
+  letters: string[];
+}
+
+/** Grade 1 Lengua themes other than letters-and-sounds. */
+export interface Grade1LenguaLevel extends BaseLevel {
+  track: "language";
+  theme:
+    | "word-separation"
+    | "simple-words-reading"
+    | "writing-words"
+    | "capitalization"
+    | "simple-sentences"
+    | "text-comprehension"
+    | "text-production";
+  variant: string;
+  config?: {
+    wordCount?: number;
+    difficulty?: "easy" | "medium" | "hard";
+    /** For text-production: i18n key for the writing prompt. */
+    promptKey?: string;
+    /** For text-production: minimum characters required to submit. */
+    minChars?: number;
+  };
+}
+
+/** Generic concept-MCQ level used by Sciences themes (curated facts). */
+export interface ConceptLevel extends BaseLevel {
+  track: "social-sciences" | "natural-sciences";
+  theme: string;
+  variant?: string;
+}
+
+export type LanguageLevel =
+  | NounsVerbsLevel
+  | LettersLevel
+  | Grade1LenguaLevel;
+
+export type Level = MathLevel | LanguageLevel | ConceptLevel;

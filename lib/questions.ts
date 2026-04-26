@@ -1,6 +1,27 @@
-import type { Level, MathLevel } from "./curriculum";
+import type {
+  Level,
+  MathLevel,
+  TablesMathLevel,
+  Grade1LenguaLevel,
+  ConceptLevel,
+} from "./curriculum";
 import { buildLanguageQuestions } from "./language-questions";
+import { buildLettersQuestions } from "./letters-questions";
+import { buildGrade1MathQuestions } from "./grade-1-math-questions";
+import { buildGrade1LenguaQuestions } from "./grade-1-lengua-questions";
+import { buildSciencesQuestions } from "./grade-1-sciences-questions";
 
+// ============================================================
+//   Question type variants — 5 UI patterns cover all exercises
+//   for grades 1-6:
+//   1. Choice (math + language MCQ)         — variants below
+//   2. Input        (one-line text/number)  — InputQuestion
+//   3. Order        (tap-to-order items)    — OrderQuestion
+//   4. Match        (pair two columns)      — MatchQuestion
+//   5. TextProd     (free text + parent OK) — TextProductionQuestion
+// ============================================================
+
+/** Multiple-choice with numeric prompt rendered as "a × b". */
 export interface MathQuestion {
   type: "math";
   a: number;
@@ -9,20 +30,58 @@ export interface MathQuestion {
   options: number[];
 }
 
+/** Multiple-choice with string prompt + optional sentence context. */
 export interface LanguageQuestion {
   type: "language";
-  /** The full prompt shown to the kid, including any sentence context. */
   prompt: string;
-  /** Optional sentence/word that should be visually highlighted as a
-   * separate block under the prompt. */
   context?: string;
-  /** Correct option text. */
   answer: string;
-  /** All options (already shuffled, includes the answer). */
   options: string[];
 }
 
-export type Question = MathQuestion | LanguageQuestion;
+/** Free input (text or number). Validated by case-insensitive trim match. */
+export interface InputQuestion {
+  type: "input";
+  prompt: string;
+  context?: string;
+  answer: string;
+  inputKind: "text" | "number";
+}
+
+/** Drag-/tap-to-order items. The user must reproduce `correctOrder`
+ * (UI shuffles the items for display). */
+export interface OrderQuestion {
+  type: "order";
+  prompt: string;
+  items: string[];
+  correctOrder: string[];
+}
+
+/** Pair items from a left column with their match in the right column.
+ * Validation: every left maps to its corresponding right. */
+export interface MatchQuestion {
+  type: "match";
+  prompt: string;
+  pairs: Array<{ left: string; right: string }>;
+}
+
+/** Free-text production (essay-style). Pass requires:
+ *   1) length >= minChars
+ *   2) parent approval (re-auth via password) on the kid's screen
+ * Architecture supports future AI auto-review (`reviewer_type='ai'`). */
+export interface TextProductionQuestion {
+  type: "text-production";
+  prompt: string;
+  minChars: number;
+}
+
+export type Question =
+  | MathQuestion
+  | LanguageQuestion
+  | InputQuestion
+  | OrderQuestion
+  | MatchQuestion
+  | TextProductionQuestion;
 
 /**
  * Number of answer choices per question — grows with level.
@@ -61,7 +120,7 @@ export function makeOptions(answer: number, count: number): number[] {
   return shuffle(Array.from(opts));
 }
 
-export function buildMathQuestions(level: MathLevel): MathQuestion[] {
+export function buildMathQuestions(level: TablesMathLevel): MathQuestion[] {
   const pool: Array<[number, number]> = [];
   const seen = new Set<string>();
   const addPair = (a: number, b: number) => {
@@ -111,6 +170,15 @@ export function buildMathQuestions(level: MathLevel): MathQuestion[] {
 }
 
 export function buildQuestions(level: Level): Question[] {
-  if (level.track === "math") return buildMathQuestions(level);
-  return buildLanguageQuestions(level);
+  if (level.track === "math") {
+    if (level.theme === "tables") return buildMathQuestions(level);
+    return buildGrade1MathQuestions(level);
+  }
+  if (level.track === "language") {
+    if (level.theme === "letters-and-sounds") return buildLettersQuestions(level);
+    if (level.theme === "nouns-verbs") return buildLanguageQuestions(level);
+    return buildGrade1LenguaQuestions(level as Grade1LenguaLevel);
+  }
+  // social-sciences / natural-sciences
+  return buildSciencesQuestions(level as ConceptLevel);
 }

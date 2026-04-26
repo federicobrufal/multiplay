@@ -12,7 +12,16 @@ import {
   type MathLevel,
   type LanguageLevel,
 } from "@/lib/curriculum";
-import { buildQuestions, type Question } from "@/lib/questions";
+import {
+  buildQuestions,
+  type Question,
+  type TextProductionQuestion,
+} from "@/lib/questions";
+import {
+  approveTextSubmission,
+  rejectTextSubmission,
+  submitTextProduction,
+} from "@/lib/text-submissions-db";
 import { computeStars } from "@/lib/progress-helpers";
 import { recordResult } from "@/lib/progress-db";
 import { Character, Mascot } from "@/components/Mascot";
@@ -33,7 +42,18 @@ type TFn = (key: string, vars?: Record<string, string | number>) => string;
 type OptionValue = number | string;
 
 function isCorrectAnswer(q: Question, option: OptionValue): boolean {
-  return option === q.answer;
+  if (q.type === "math" || q.type === "language") {
+    return option === q.answer;
+  }
+  // input/order/match/text-production: not yet wired up to the
+  // auto-advance flow. Each will need its own state machine.
+  return false;
+}
+
+/** True if the question type is currently playable. New types render
+ * a "Próximamente" stub until their component is built. */
+function isPlayable(q: Question): boolean {
+  return q.type === "math" || q.type === "language";
 }
 
 export default function LevelPlayer({
@@ -151,20 +171,39 @@ export default function LevelPlayer({
       {stage === "intro" && (
         <Intro level={level} selectedMascot={selectedMascot} onStart={start} />
       )}
-      {stage === "playing" && questions[idx] && (
-        <Playing
-          level={level}
-          question={questions[idx]}
-          index={idx}
-          total={questions.length}
-          score={score}
-          streak={streak}
-          picked={picked}
-          locked={locked}
-          onPick={onPick}
-          selectedMascot={selectedMascot}
-        />
-      )}
+      {stage === "playing" &&
+        questions[idx] &&
+        questions[idx].type === "text-production" && (
+          <TextProductionStage
+            level={level}
+            track={track}
+            theme={theme}
+            question={questions[idx] as TextProductionQuestion}
+            selectedMascot={selectedMascot}
+            onPassed={() => {
+              setScore(1);
+              audio.stopMusic();
+              audio.playSfx("win");
+              setStage("result");
+            }}
+          />
+        )}
+      {stage === "playing" &&
+        questions[idx] &&
+        questions[idx].type !== "text-production" && (
+          <Playing
+            level={level}
+            question={questions[idx]}
+            index={idx}
+            total={questions.length}
+            score={score}
+            streak={streak}
+            picked={picked}
+            locked={locked}
+            onPick={onPick}
+            selectedMascot={selectedMascot}
+          />
+        )}
       {stage === "result" && (
         <Result
           level={level}
@@ -188,53 +227,76 @@ function pickIntroMascot(
   messages: string[];
 } {
   if (level.track === "language") {
-    if (level.topic === "final") {
+    if (level.theme === "letters-and-sounds") {
       return {
-        mood: "think",
-        messages: [t("lang.intro.final.title"), t("lang.intro.final.body")],
+        mood: "excited",
+        messages: [
+          t("lang.intro.letters_and_sounds.title"),
+          t("lang.intro.letters_and_sounds.body"),
+        ],
       };
     }
-    return {
-      mood: "excited",
-      messages: [
-        t(`lang.intro.${level.topic.replace("-", "_")}.title`),
-        t(`lang.intro.${level.topic.replace("-", "_")}.body`),
-      ],
-    };
-  }
-
-  // Math
-  if (level.kind === "learn") {
-    const table = level.tables[0];
-    const first = level.factors?.[0] ?? 1;
-    const last = level.factors?.[level.factors.length - 1] ?? 10;
-    return {
-      mood: "excited",
-      messages: [
-        t("intro.learn_title", { table, emoji: level.emoji }),
-        t("intro.learn_range", { t: table, first, last }),
-        t("intro.learn_look"),
-      ],
-    };
-  }
-  if (level.tables.length === 1) {
+    if (level.theme === "nouns-verbs") {
+      if (level.topic === "final") {
+        return {
+          mood: "think",
+          messages: [t("lang.intro.final.title"), t("lang.intro.final.body")],
+        };
+      }
+      return {
+        mood: "excited",
+        messages: [
+          t(`lang.intro.${level.topic.replace("-", "_")}.title`),
+          t(`lang.intro.${level.topic.replace("-", "_")}.body`),
+        ],
+      };
+    }
+    // grade-1 lengua other themes — generic intro
     return {
       mood: "happy",
       messages: [t("intro.single_practice"), t("intro.single_you_can")],
     };
   }
-  if (level.tables.length === 9 && level.emoji === "👑") {
+  // sciences and others — generic
+  if (level.track === "social-sciences" || level.track === "natural-sciences") {
     return {
-      mood: "think",
-      messages: [t("intro.final_title"), t("intro.final_breath")],
+      mood: "happy",
+      messages: [t("intro.single_practice"), t("intro.single_you_can")],
     };
   }
+
+  // Math — tables-specific messages
+  if (level.track === "math" && level.theme === "tables") {
+    if (level.kind === "learn") {
+      const table = level.tables[0];
+      const first = level.factors?.[0] ?? 1;
+      const last = level.factors?.[level.factors.length - 1] ?? 10;
+      return {
+        mood: "excited",
+        messages: [
+          t("intro.learn_title", { table, emoji: level.emoji }),
+          t("intro.learn_range", { t: table, first, last }),
+          t("intro.learn_look"),
+        ],
+      };
+    }
+    if (level.tables.length === 1) {
+      return {
+        mood: "happy",
+        messages: [t("intro.single_practice"), t("intro.single_you_can")],
+      };
+    }
+    if (level.tables.length === 9 && level.emoji === "👑") {
+      return {
+        mood: "think",
+        messages: [t("intro.final_title"), t("intro.final_breath")],
+      };
+    }
+  }
+  // Grade 1 math (counting, comparing, addition, etc.)
   return {
     mood: "happy",
-    messages: [
-      t("intro.mix_title", { n: level.tables.length }),
-      t("intro.mix_look"),
-    ],
+    messages: [t("intro.single_practice"), t("intro.single_you_can")],
   };
 }
 
@@ -277,14 +339,14 @@ function Intro({
         />
       </div>
 
-      {level.track === "math" && level.kind === "learn" && (
+      {level.track === "math" && level.theme === "tables" && level.kind === "learn" && (
         <TableReference
           table={level.tables[0]}
           factors={level.factors ?? [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]}
         />
       )}
 
-      {level.track === "math" && level.kind === "mix" && (
+      {level.track === "math" && level.theme === "tables" && level.kind === "mix" && (
         <MixTablesReference level={level} />
       )}
 
@@ -332,7 +394,11 @@ function TableReference({
   );
 }
 
-function MixTablesReference({ level }: { level: MathLevel }) {
+function MixTablesReference({
+  level,
+}: {
+  level: import("@/lib/curriculum").TablesMathLevel;
+}) {
   const { t } = useI18n();
   return (
     <div className="mt-6 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
@@ -355,8 +421,14 @@ function MixTablesReference({ level }: { level: MathLevel }) {
 
 function LanguageReference({ level }: { level: LanguageLevel }) {
   const { t } = useI18n();
-  const topicKey = level.topic === "final" ? "final" : level.topic.replace("-", "_");
-  const examplesKey = `lang.intro.${topicKey}.examples`;
+  let examplesKey: string | null = null;
+  if (level.theme === "letters-and-sounds") {
+    examplesKey = "lang.intro.letters_and_sounds.examples";
+  } else if (level.theme === "nouns-verbs") {
+    const topicKey = level.topic === "final" ? "final" : level.topic.replace("-", "_");
+    examplesKey = `lang.intro.${topicKey}.examples`;
+  }
+  if (!examplesKey) return null;
   return (
     <div className="mt-6 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
       <p className="text-center text-sm text-slate-700">
@@ -485,14 +557,17 @@ function QuestionPrompt({ question }: { question: Question }) {
       </div>
     );
   }
+  // language / input / order / match / text-production all share the
+  // same prompt + optional context layout.
+  const context = "context" in question ? question.context : undefined;
   return (
     <div className="mt-3 flex flex-col items-center text-center animate-pop">
       <p className="text-base font-bold text-slate-900 sm:text-lg">
         {question.prompt}
       </p>
-      {question.context && (
-        <p className="mt-3 rounded-2xl bg-amber-50 px-4 py-3 text-xl font-black text-slate-900 ring-1 ring-amber-200 sm:text-2xl">
-          “{question.context}”
+      {context && (
+        <p className="mt-3 rounded-2xl bg-amber-50 px-4 py-3 text-4xl font-black text-slate-900 ring-1 ring-amber-200 sm:text-5xl">
+          {context}
         </p>
       )}
     </div>
@@ -510,6 +585,28 @@ function OptionsGrid({
   locked: boolean;
   onPick: (n: OptionValue) => void;
 }) {
+  // Stubs for not-yet-implemented question types. Once a level using
+  // one of these is added, replace the corresponding case with its
+  // dedicated component (Input / Order / Match / TextProduction).
+  if (
+    question.type === "input" ||
+    question.type === "order" ||
+    question.type === "match" ||
+    question.type === "text-production"
+  ) {
+    return (
+      <div className="mt-auto rounded-2xl bg-slate-50 p-6 text-center text-slate-500 ring-1 ring-slate-200">
+        <p className="text-3xl">🚧</p>
+        <p className="mt-2 text-sm font-bold">
+          Componente en construcción
+        </p>
+        <p className="mt-1 text-xs">
+          Tipo: <code className="font-mono">{question.type}</code>
+        </p>
+      </div>
+    );
+  }
+
   const options: OptionValue[] = question.options;
   const n = options.length;
 
@@ -556,7 +653,10 @@ function OptionsGrid({
   );
 }
 
-function findWeakTable(level: MathLevel, wrong: Question[]): number | null {
+function findWeakTable(
+  level: import("@/lib/curriculum").TablesMathLevel,
+  wrong: Question[],
+): number | null {
   if (wrong.length === 0) return null;
   const counts = new Map<number, number>();
   const allowed = new Set(level.tables);
@@ -603,7 +703,9 @@ function Result({
 
   // Math-only "weak table" suggestion.
   const weakTable =
-    level.track === "math" ? findWeakTable(level, wrong) : null;
+    level.track === "math" && level.theme === "tables"
+      ? findWeakTable(level, wrong)
+      : null;
   const reviewLevel = weakTable != null ? findLearnLevelFor(weakTable) : undefined;
   const suggestReview = !passed && reviewLevel && reviewLevel.id !== level.id;
 
@@ -731,6 +833,279 @@ function TopBar() {
         {t("meta.app_name")}
       </span>
       <div className="h-10 w-10" />
+    </div>
+  );
+}
+
+// =================================================================
+//                    TEXT PRODUCTION STAGE
+// =================================================================
+// Kid types in a textarea, then a parent approves inline by entering
+// their password on the kid's screen. Approval marks the level passed.
+
+function TextProductionStage({
+  level,
+  track,
+  theme,
+  question,
+  selectedMascot,
+  onPassed,
+}: {
+  level: Level;
+  track: Track;
+  theme: string;
+  question: TextProductionQuestion;
+  selectedMascot: MascotVariant;
+  onPassed: () => void;
+}) {
+  const { t } = useI18n();
+  const [content, setContent] = useState("");
+  const [submissionId, setSubmissionId] = useState<string | null>(null);
+  const [showApprovalModal, setShowApprovalModal] = useState(false);
+  const [feedback, setFeedback] = useState<string | null>(null);
+  const [, startTransition] = useTransition();
+  const [pending, setPending] = useState(false);
+
+  const minChars = question.minChars;
+  const trimmed = content.trim();
+  const canSubmit = trimmed.length >= minChars && !pending;
+
+  function onSubmit() {
+    if (!canSubmit) return;
+    setPending(true);
+    startTransition(async () => {
+      const res = await submitTextProduction(
+        track,
+        theme,
+        level.id,
+        trimmed,
+        minChars,
+      );
+      setPending(false);
+      if (res.ok) {
+        setSubmissionId(res.submissionId);
+        setShowApprovalModal(true);
+      } else {
+        window.alert(res.error);
+      }
+    });
+  }
+
+  function onApproved() {
+    setShowApprovalModal(false);
+    setSubmissionId(null);
+    onPassed();
+  }
+
+  function onRejected(fb: string) {
+    setShowApprovalModal(false);
+    setSubmissionId(null);
+    setFeedback(fb);
+    setContent("");
+  }
+
+  return (
+    <div className="flex flex-1 flex-col">
+      <TopBar />
+      <div className="mt-4">
+        <Character variant={selectedMascot} size="sm" mood="happy" />
+      </div>
+
+      <div className="mt-4 rounded-2xl bg-amber-50 p-4 text-center ring-1 ring-amber-200">
+        <p className="text-sm font-bold uppercase tracking-wide text-amber-700">
+          {t("tp.write_about")}
+        </p>
+        <p className="mt-1 text-lg font-black text-amber-900 sm:text-xl">
+          {t(question.prompt)}
+        </p>
+      </div>
+
+      {feedback && (
+        <div className="mt-3 rounded-xl bg-rose-50 p-3 text-sm font-semibold text-rose-700 ring-1 ring-rose-200">
+          <span className="font-black">📝 </span>
+          {feedback}
+        </div>
+      )}
+
+      <textarea
+        value={content}
+        onChange={(e) => setContent(e.target.value)}
+        rows={6}
+        placeholder={t("tp.placeholder")}
+        className="mt-4 w-full rounded-2xl bg-white p-4 text-base font-semibold text-slate-900 ring-2 ring-slate-200 focus:ring-brand-500"
+      />
+
+      <p className="mt-2 text-right text-xs font-bold text-slate-500">
+        {trimmed.length} / {minChars}
+      </p>
+
+      <button
+        onClick={onSubmit}
+        disabled={!canSubmit}
+        className="mt-auto w-full rounded-2xl bg-brand-500 py-4 text-lg font-black text-white shadow-lg shadow-brand-500/30 active:scale-[0.99] disabled:opacity-50"
+      >
+        {pending ? t("tp.submitting") : t("tp.show_to_parent")}
+      </button>
+
+      {showApprovalModal && submissionId && (
+        <ApprovalModal
+          submissionId={submissionId}
+          content={trimmed}
+          minScore={level.minScore}
+          onClose={() => setShowApprovalModal(false)}
+          onApproved={onApproved}
+          onRejected={onRejected}
+        />
+      )}
+    </div>
+  );
+}
+
+function ApprovalModal({
+  submissionId,
+  content,
+  minScore,
+  onClose,
+  onApproved,
+  onRejected,
+}: {
+  submissionId: string;
+  content: string;
+  minScore: number;
+  onClose: () => void;
+  onApproved: () => void;
+  onRejected: (feedback: string) => void;
+}) {
+  const { t } = useI18n();
+  const [password, setPassword] = useState("");
+  const [feedback, setFeedback] = useState("");
+  const [mode, setMode] = useState<"choose" | "reject">("choose");
+  const [error, setError] = useState<string | null>(null);
+  const [pending, startTransition] = useTransition();
+
+  function onApprove() {
+    setError(null);
+    if (!password.trim()) {
+      setError(t("kids.parent_mode_password_required"));
+      return;
+    }
+    startTransition(async () => {
+      const res = await approveTextSubmission(submissionId, password, minScore);
+      if (res.ok) {
+        onApproved();
+      } else {
+        setError(res.error);
+      }
+    });
+  }
+
+  function onReject() {
+    setError(null);
+    if (!password.trim()) {
+      setError(t("kids.parent_mode_password_required"));
+      return;
+    }
+    if (!feedback.trim()) {
+      setError(t("tp.feedback_required"));
+      return;
+    }
+    startTransition(async () => {
+      const res = await rejectTextSubmission(submissionId, password, feedback);
+      if (res.ok) {
+        onRejected(feedback);
+      } else {
+        setError(res.error);
+      }
+    });
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div className="w-full max-w-md rounded-2xl bg-white p-5 shadow-2xl">
+        <div className="mb-3 flex items-center gap-3">
+          <span className="text-3xl">📝</span>
+          <div>
+            <h2 className="text-lg font-black text-slate-900">
+              {t("tp.approval_title")}
+            </h2>
+            <p className="text-xs text-slate-600">{t("tp.approval_sub")}</p>
+          </div>
+        </div>
+
+        <div className="rounded-xl bg-slate-50 p-3 text-sm font-semibold text-slate-800 ring-1 ring-slate-200">
+          {content}
+        </div>
+
+        <input
+          type="password"
+          autoComplete="current-password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder={t("auth.password_placeholder")}
+          className="mt-3 w-full rounded-xl bg-slate-50 px-3 py-3 text-sm font-semibold ring-1 ring-slate-200 focus:ring-2 focus:ring-brand-500"
+        />
+
+        {mode === "reject" && (
+          <textarea
+            value={feedback}
+            onChange={(e) => setFeedback(e.target.value)}
+            rows={2}
+            placeholder={t("tp.feedback_placeholder")}
+            className="mt-2 w-full rounded-xl bg-slate-50 px-3 py-2 text-sm font-semibold ring-1 ring-slate-200 focus:ring-2 focus:ring-brand-500"
+          />
+        )}
+
+        {error && (
+          <p className="mt-2 rounded-xl bg-rose-50 px-3 py-2 text-xs font-bold text-rose-700 ring-1 ring-rose-200">
+            {error}
+          </p>
+        )}
+
+        {mode === "choose" ? (
+          <div className="mt-3 flex gap-2">
+            <button
+              type="button"
+              onClick={() => setMode("reject")}
+              disabled={pending}
+              className="flex-1 rounded-xl bg-rose-100 px-3 py-3 text-sm font-black text-rose-700 hover:bg-rose-200 disabled:opacity-50"
+            >
+              {t("tp.reject_button")}
+            </button>
+            <button
+              type="button"
+              onClick={onApprove}
+              disabled={pending}
+              className="flex-1 rounded-xl bg-brand-500 px-3 py-3 text-sm font-black text-white shadow-sm active:scale-[0.98] disabled:opacity-50"
+            >
+              {pending ? t("kids.parent_mode_verifying") : t("tp.approve_button")}
+            </button>
+          </div>
+        ) : (
+          <div className="mt-3 flex gap-2">
+            <button
+              type="button"
+              onClick={() => setMode("choose")}
+              disabled={pending}
+              className="flex-1 rounded-xl bg-slate-100 px-3 py-3 text-sm font-bold text-slate-700 hover:bg-slate-200 disabled:opacity-50"
+            >
+              {t("kids.parent_mode_cancel")}
+            </button>
+            <button
+              type="button"
+              onClick={onReject}
+              disabled={pending}
+              className="flex-1 rounded-xl bg-rose-500 px-3 py-3 text-sm font-black text-white shadow-sm active:scale-[0.98] disabled:opacity-50"
+            >
+              {pending ? t("kids.parent_mode_verifying") : t("tp.confirm_reject")}
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

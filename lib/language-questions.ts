@@ -1,5 +1,5 @@
 import type {
-  LanguageLevel,
+  NounsVerbsLevel,
   LanguageQuestionType,
   LanguageTopic,
 } from "./level-types";
@@ -307,7 +307,7 @@ function buildOne(
   }
 }
 
-export function buildLanguageQuestions(level: LanguageLevel): LanguageQuestion[] {
+export function buildLanguageQuestions(level: NounsVerbsLevel): LanguageQuestion[] {
   const out: LanguageQuestion[] = [];
   // Avoid two identical prompts (with same answer & options) in a row.
   let lastKey = "";
